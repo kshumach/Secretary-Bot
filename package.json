@@ -1,0 +1,15 @@
+{
+  "name": "sec_bot",
+  "version": "0.0.1",
+  "dependencies": {
+    "discord.js": "^11.1.0"
+  },
+  "scripts": {
+    "start": "node bot.js",
+    "test": "mocha test"
+  },
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "mocha": "^3.4.2"
+  }
+}
