@@ -1,7 +1,7 @@
 'use strict';
 
 const { assert } = require('chai');
-const Requests = require('../requests');
+const Requests = require('../src/requests');
 
 let requests = new Requests();
 

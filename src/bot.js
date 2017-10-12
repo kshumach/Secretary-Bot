@@ -1,8 +1,8 @@
 'use strict';
 
-const Actions = require('../sec_bot/actions');
+const Actions = require('./actions');
 const Discord = require('discord.js');
-const Requests = require('../sec_bot/requests');
+const Requests = require('./requests');
 
 const client = new Discord.Client();
 const token = "";

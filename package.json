@@ -8,7 +8,7 @@
     "lodash": "^4.17.4"
   },
   "scripts": {
-    "start": "node bot.js",
+    "start": "node src/bot.js",
     "test": "mocha"
   },
   "devDependencies": {
