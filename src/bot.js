@@ -23,13 +23,15 @@ client.on('message', message => {
         } else if(message.mentions.roles.exists('name', 'Test') || message.mentions.roles.exists('name', 'Mr. CEO')) {
             Actions.handleCeoMention(message);
         } else {
-            switch(message.content) {
+            switch(message.content.split(' ')[0]) {
                 case '#help':
                     return Actions.displayHelp(message);
                 case '#sched':
                     return Actions.displayCurrentSchedule(message);
                 case '#book':
                     return Actions.displayBookAppointmentHelp(message);
+                case '#delete':
+                    return Actions.deleteMessages(message);
                 default:
                     return;
             }

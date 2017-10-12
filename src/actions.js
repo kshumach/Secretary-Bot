@@ -4,6 +4,8 @@
 // Live server: 328388894884102144
 
 class Actions {
+
+    // CEO methods
     static handleMention(message) {
         let userList = message.guild.roles.get('328967450400129024').members;
         let users = userList.map(item => item.user.id);
@@ -15,7 +17,7 @@ class Actions {
     }
 
     static handleCeoMention(message) {
-        let userList = message.guild.roles.get('328388894884102144').members;
+        let userList = message.guild.roles.get('328967450400129024').members;
         let users = userList.map(item => item.user.id);
 
         // currently take the first users as there should only be one anyway. Pulls all users listed under the role anyway in case of changes later.
@@ -41,6 +43,26 @@ class Actions {
 
     static bookAppointments(message) {
         
+    }
+
+    // General Functionality
+    static deleteMessages(message) {
+        let amount = message.content.split(' ')[1];
+        // Delete the messages
+        message.channel.bulkDelete(amount)
+            .then(msg => console.log(`${message.author.username} requested that ${amount} messages be deleted on ${new Date()}`))
+            .catch(err => {
+                if(err.message.match(/Provided too few or too many messages to delete. Must provide at least 2 and at most 100 messages to delete/g)) {
+                    message.channel.send("Provided too few or too many messages to delete. Must provide at least 2 and at most 100 messages to delete")
+                        .catch(console.error);
+                } else {
+                    console.log(err);
+                }
+            });
+
+        message.channel.send(`Deleted the last ${amount} messages.`)
+            .then(msg => msg.delete(1000))
+            .catch(console.error);
     }
 }
 
