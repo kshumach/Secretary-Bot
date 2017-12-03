@@ -94,7 +94,7 @@ class Actions {
         // Set amount to 10 if it's over or 1 if no amount was specified.
         const amount = (parseInt(contents[2].slice(2)) > 10 ? 10 : parseInt(contents[2].slice(2))) || 1;
         if(parseInt(contents[2].slice(2)) > 10) {
-            message.reply(`Maximum iq change is 10 points. Making iq changes with 10 points instead of ${amount}`)
+            message.reply(`Maximum iq change is 10 points. Making iq changes with 10 points instead of ${parseInt(contents[2].slice(2))}`)
         }
         const reason = contents[3] ? contents.filter((item) => { return contents.indexOf(item) > 2 }).join(' ') : 'No reason given.';
         if(targetUser === message.author.id && changeType === 1) {
