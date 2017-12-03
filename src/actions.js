@@ -24,7 +24,7 @@ class Actions {
     }
 
     static handleCeoMention(message) {
-        let userList = message.guild.roles.get('328967450400129024').members;
+        let userList = message.guild.roles.find('name', 'Mr. CEO').members;
         let users = userList.map(item => item.user.id);
 
         // currently take the first users as there should only be one anyway. Pulls all users listed under the role anyway in case of changes later.
