@@ -1,5 +1,6 @@
 .idea
 npm-debug.log
+secrets
 
 # Dependency directories
 node_modules

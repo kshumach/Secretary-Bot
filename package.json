@@ -8,11 +8,14 @@
     "lodash": "^4.17.4"
   },
   "scripts": {
-    "start": "node src/bot.js",
+    "start": "nodemon src/bot.js",
     "test": "mocha"
   },
   "devDependencies": {
     "chai": "^4.0.2",
     "mocha": "^3.4.2"
+  },
+  "nodemonConfig": {
+    "ignore": ["tests/*", "secrets/*", "sql/*"]
   }
 }
