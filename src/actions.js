@@ -14,7 +14,7 @@ class Actions {
             message.reply(`Please do not speak directly to me you ${'<:pleb:237058273054818306>'}. See available commands by typing #help.`);
         } else if(message.author.id !== users[0] && message.content.split(' ')[0] === '#iq') {
             const reply = `#iq ${message.author} --9001 For being a ${'<:pleb:237058273054818306>'}.`;
-            message.reply(`You dare adjust a supreme beings iq? It is infinite. You must be punished for such behavior`)
+            message.reply(`You dare adjust a supreme being's iq? It is infinite. You must be punished for such behavior`)
                 .then(msg => msg.channel.send(reply));
         } else if (message.author.id === users[0] && message.content.split(' ')[0] !== '#iq') {
             message.reply(`What have I done to anger you my lord? I am truly sorry for my incompetence`)
