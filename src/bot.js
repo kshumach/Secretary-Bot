@@ -18,7 +18,6 @@ client.on('ready', () => {
 });
 
 client.on('message', message => {
-    console.log(message.content, message.author.username);
     // Check to see if message author is not the bot
     if(message.author.id === botId && message.content.split(' ')[0] === '#iq') {
         Actions.handleIqPoints(message);
