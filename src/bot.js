@@ -3,9 +3,11 @@
 const Actions = require('./actions');
 const Discord = require('discord.js');
 const Requests = require('./requests');
+const Token = require('../secrets/token');
 
 const client = new Discord.Client();
-const token = "";
+const token = Token;
+const botId = '328946580633812993';
 
 let requests = '';
 
@@ -16,25 +18,18 @@ client.on('ready', () => {
 });
 
 client.on('message', message => {
+    console.log(message.content, message.author.username);
     // Check to see if message author is not the bot
-    if(message.author !== "328946580633812993"){
-        if (message.mentions.users.exists('username', 'Secretary-Bot')) {
+    if(message.author.id === botId && message.content.split(' ')[0] === '#iq') {
+        Actions.handleIqPoints(message);
+    }
+    if(message.author.id !== botId){
+        if(message.mentions.users.exists('id', botId)) {
             Actions.handleMention(message);
         } else if(message.mentions.roles.exists('name', 'Test') || message.mentions.roles.exists('name', 'Mr. CEO')) {
             Actions.handleCeoMention(message);
         } else {
-            switch(message.content.split(' ')[0]) {
-                case '#help':
-                    return Actions.displayHelp(message);
-                case '#sched':
-                    return Actions.displayCurrentSchedule(message);
-                case '#book':
-                    return Actions.displayBookAppointmentHelp(message);
-                case '#delete':
-                    return Actions.deleteMessages(message);
-                default:
-                    return;
-            }
+            Actions.handleStandardMessage(message);
         }
     }
 });
