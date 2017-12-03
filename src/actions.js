@@ -10,8 +10,6 @@ class Actions {
         let userList = message.guild.roles.find('name', 'Mr. CEO').members;
         let users = userList.map(item => item.user.id);
 
-        console.log(message.author.id, users[0]);
-
         if(message.author.id !== users[0] && message.content.split(' ')[0] !== '#iq'){
             message.reply(`Please do not speak directly to me you ${'<:pleb:237058273054818306>'}. See available commands by typing #help.`);
         } else if(message.author.id !== users[0] && message.content.split(' ')[0] === '#iq') {
@@ -31,8 +29,11 @@ class Actions {
 
         // currently take the first users as there should only be one anyway. Pulls all users listed under the role anyway in case of changes later.
         // TODO: Figure out what you want to do here
-        let reply = `Mr. CEO, <@${users[0]}> is currently taking appointments. If you would like to schedule one, please type #book, or type #sched to see the current schedule.`;
-        message.reply(reply);
+        users[0] ?
+            message.reply(`Mr. CEO, <@${users[0]}> is currently taking appointments. If you would like to schedule one, please type #book, or type #sched to see the current schedule.`)
+                .catch(console.error)
+            : message.reply('Server currently does not have a CEO. Looks like i\'m unemployed.')
+                .catch(console.error);
     }
 
     static displayHelp(message) {
@@ -72,8 +73,11 @@ class Actions {
                 }
             });
 
+        // Send notification message that deletes itself after the specified timeout
+
+        const TIMEOUT = 1000;
         message.channel.send(`Deleted the last ${amount} messages.`)
-            .then(msg => msg.delete(1000))
+            .then(msg => msg.delete(TIMEOUT))
             .catch(console.error);
     }
 
@@ -123,7 +127,7 @@ class Actions {
         }
         return false;
     }
-    
+
     static handleStandardMessage(message) {
         switch(message.content.split(' ')[0]) {
             case '#help':
