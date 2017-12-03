@@ -7,8 +7,8 @@ class Actions {
 
     // CEO methods
     static handleMention(message) {
-        let userList = message.guild.roles.find('name', 'Mr. CEO').members;
-        let users = userList.map(item => item.user.id);
+        let userList = message.guild.roles.find('name', 'Mr. CEO') ? message.guild.roles.find('name', 'Mr. CEO').members : [];
+        let users = userList.map(item => item.user.id) || -1;
 
         if(message.author.id !== users[0] && message.content.split(' ')[0] !== '#iq'){
             message.reply(`Please do not speak directly to me you ${'<:pleb:237058273054818306>'}. See available commands by typing #help.`);
