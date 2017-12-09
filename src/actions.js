@@ -5,6 +5,10 @@
 
 class Actions {
 
+    constructor() {
+        this.userMentionRegex = /<@[0-9]*>/g;
+    }
+
     // CEO methods
     static handleMention(message) {
         let userList = message.guild.roles.find('name', 'Mr. CEO') ? message.guild.roles.find('name', 'Mr. CEO').members : [];
@@ -128,20 +132,44 @@ class Actions {
         return false;
     }
 
+    static setIq(message) {
+        const contents = message.content.split(' ');
+
+    }
+
+    static checkSetIqValidity(messageContents) {
+        const userMentionRegex = /<@[0-9]*>/g;
+    }
+
+    static getIq(message) {
+        const contents = message.content.split(' ');
+    }
+
     static handleStandardMessage(message) {
         switch(message.content.split(' ')[0]) {
             case '#help':
-                return Actions.displayHelp(message);
+                Actions.displayHelp(message);
+                break;
             case '#sched':
-                return Actions.displayCurrentSchedule(message);
+                Actions.displayCurrentSchedule(message);
+                break;
             case '#book':
-                return Actions.bookAppointments(message);
+                Actions.bookAppointments(message);
+                break;
             case '#delete':
-                return Actions.deleteMessages(message);
+                Actions.deleteMessages(message);
+                break;
             case '#iq':
-                return Actions.handleIqPoints(message);
+                Actions.handleIqPoints(message);
+                break;
+            case '#setiq':
+                Actions.setIq(message);
+                break;
+            case '#getiq':
+                Actions.getIq(message);
+                break;
             default:
-                return;
+                break;
         }
     }
 }
