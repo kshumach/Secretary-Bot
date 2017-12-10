@@ -7,10 +7,6 @@ const IqRoutes = require('../routes/iq');
 
 class Actions {
 
-    constructor() {
-        this.userMentionRegex = /<@[0-9]*>/g;
-    }
-
     // CEO methods
     static handleMention(message) {
         let userList = message.guild.roles.find('name', 'Mr. CEO') ? message.guild.roles.find('name', 'Mr. CEO').members : [];
@@ -94,7 +90,9 @@ class Actions {
             message.reply(errorMessage);
             return;
         }
-        const targetUser = contents[1].slice(2, contents[1].length-1);
+        const targetUser = contents[1].indexOf('!') === -1 ?
+            contents[1].slice(2, contents[1].length-1)
+            : contents[1].slice(3, contents[1].length-1);
         if(targetUser === '328946580633812993') return;
         const changeType = contents[2].slice(0,2) === '--' ? 0 : 1;
         // Set amount to 10 if it's over or 1 if no amount was specified.
@@ -123,7 +121,7 @@ class Actions {
     }
 
     static checkIqMessageValidity(messageContents) {
-        const userMentionRegex = /<@[0-9]*>/g;
+        const userMentionRegex = /<@[!0-9]*>/g;
         const iqChangeRegex = /(--|\+\+)[0-9]*/g;
         if(messageContents.length === 1) {
             return `Expecting several arguments but got none. Type #iq --help for more info.`
@@ -148,7 +146,9 @@ class Actions {
             return;
         }
 
-        const targetUser = contents[1].slice(2, contents[1].length-1);
+        const targetUser = contents[1].indexOf('!') === -1 ?
+            contents[1].slice(2, contents[1].length-1)
+            : contents[1].slice(3, contents[1].length-1);
         const iq = contents[2];
 
         const successMessage = `Set ${contents[1]} iq to ${iq}.`;
@@ -164,7 +164,7 @@ class Actions {
     }
 
     static checkSetIqValidity(messageContents) {
-        const userMentionRegex = /<@[0-9]*>/g;
+        const userMentionRegex = /<@![0-9]*>/g;
         const valueRegex = /[0-9]*/g;
         if (messageContents.length === 1) {
             return 'Expecting at least 2 arguments but got none. Type #setiq --help for info.';
@@ -187,7 +187,9 @@ class Actions {
             return;
         }
 
-        const user = contents[1].slice(2, contents[1].length-1);
+        const user = contents[1].indexOf('!') === -1 ?
+            contents[1].slice(2, contents[1].length-1)
+            : contents[1].slice(3, contents[1].length-1);
 
         IqRoutes.getUserIq(user, message.guild.id).then(result => {
             if ('error' in result) {
