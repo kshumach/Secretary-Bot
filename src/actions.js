@@ -43,7 +43,7 @@ class Actions {
     }
 
     static displayHelp(message) {
-        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n\nFor specific command help, type in a command with no arguments.";
+        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n#setiq\n#getiq\n\nFor specific command help, type in a command with no arguments.";
         message.channel.send(help);
     }
 
@@ -142,6 +142,12 @@ class Actions {
 
     static setIq(message) {
         const contents = message.content.split(' ');
+        const errorMessage = Actions.checkSetIqValidity(contents);
+        if(errorMessage) {
+            message.reply(errorMessage);
+            return;
+        }
+
         const targetUser = contents[1].slice(2, contents[1].length-1);
         const iq = contents[2];
 
@@ -158,11 +164,29 @@ class Actions {
     }
 
     static checkSetIqValidity(messageContents) {
+        const userMentionRegex = /<@[0-9]*>/g;
+        const valueRegex = /[0-9]*/g;
+        if (messageContents.length === 1) {
+            return 'Expecting at least 2 arguments but got none. Type #setiq --help for info.';
+        }
+        if (messageContents.length > 1 && messageContents[1] === '--help') {
+            return 'Type #getiq [user mention] [iq value] to set the mentioned user\'s iq to the specified value.\nNote: triggering user must be an admin.'
+        }
+        if (!(messageContents.length > 1 && userMentionRegex.test(messageContents[1]) && valueRegex.test(messageContents[2]))) {
+            return 'Invalid form. Type #setiq --help for info.'
+        }
 
+        return false;
     }
 
     static getIq(message) {
         const contents = message.content.split(' ');
+        const errorMessage = Actions.checkGetIqValidity(contents);
+        if(errorMessage) {
+            message.reply(errorMessage);
+            return;
+        }
+
         const user = contents[1].slice(2, contents[1].length-1);
 
         IqRoutes.getUserIq(user, message.guild.id).then(result => {
@@ -177,7 +201,13 @@ class Actions {
     }
 
     static checkGetIqValidity(messageContents) {
-
+        if (messageContents.length === 1) {
+            return 'Expecting at least 1 argument but got none. Type #getiq --help for info.';
+        }
+        if (messageContents.length > 1 && messageContents[1] === '--help') {
+            return 'Type #getiq [user mention] to get the mentioned user\'s current iq.'
+        }
+        return false;
     }
 
     static handleStandardMessage(message) {
