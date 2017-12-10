@@ -23,10 +23,10 @@ class IqModels extends Model {
 
             makeQuery.then(result => {
                 if (result.rowCount === 0) {
-                    resolve(false)
+                    resolve({error: 'Given user, server pair does not exist. Set an iq for them with #setiq.'})
+                } else {
+                    resolve(result.rows[0]);
                 }
-                resolve(result.rows[0]);
-
             }).catch(err => reject(err))
         })
     }
@@ -38,10 +38,8 @@ class IqModels extends Model {
                 if (isAdmin) {
                     IqModels.checkEntry(uid, serverId).then(result => {
                         if (result) {
-                            console.log(result.iq, iq);
                             if (result.iq !== iq) {
                                 IqModels.updateEntry(uid, serverId, iq).then(result => {
-                                    console.log('I just updated', result);
                                     resolve(result);
                                 });
                             } else {
@@ -49,7 +47,6 @@ class IqModels extends Model {
                             }
                         } else {
                             IqModels.insertEntry(uid, serverId, iq).then(result => {
-                                console.log('I just inserted', result);
                                 resolve(result);
                             });
                         }
@@ -58,6 +55,57 @@ class IqModels extends Model {
                     resolve({error: 'User does not have required permissions'});
                 }
             }).catch(err => console.error(err));
+        })
+    }
+
+    static setIqWithoutChecks(uid, serverId, type) {
+        return new Promise((resolve, reject) => {
+
+            const makeQuery = Model.performQuery(`
+                UPDATE iq_points
+                    SET IQ = IQ ${type === 1 ? '+' : '-'} 1
+                    WHERE user_id = $1 AND server_id = $2
+            `
+            , [uid, serverId]);
+
+            makeQuery.then(result => {
+                if (result.rowCount === 1) {
+                    resolve(result);
+                } else {
+                    resolve({error: 'Could not update iq'});
+                }
+            }).catch(err => reject(err));
+        })
+    }
+
+    static adjustIq(uid, serverId, type, triggerUser, reason) {
+        return new Promise((resolve, reject) => {
+
+            const makeQuery = Model.performQuery(`
+                INSERT INTO iq_points_alterations 
+                    (target_user, trigger_user, server_id, change_type, reason)
+                    VALUES
+                    ($1, $2, $3, $4, $5)
+            `
+            , [uid, triggerUser, serverId, type, reason]);
+
+            IqModels.checkEntry(uid, serverId).then(result => {
+                if (result) {
+                    IqModels.setIqWithoutChecks(uid, serverId, type).then(result => {
+                        if ('error' in result) {
+                            resolve(result);
+                        } else {
+                            makeQuery.then(result => {
+                                if (result.rowCount === 1) {
+                                    resolve(result);
+                                } else {
+                                    resolve({error: 'Could not make record'});
+                                }
+                            }).catch(err => reject(err));
+                        }
+                    }).catch(err => reject(err));
+                }
+            })
         })
     }
 
@@ -74,7 +122,7 @@ class IqModels extends Model {
                 if (result.rowCount === 1) {
                     resolve(result.rows[0]);
                 } else {
-                    resolve(false);
+                    resolve({});
                 }
             }).catch(err => reject(err));
         })
@@ -89,7 +137,11 @@ class IqModels extends Model {
             , [iq, uid, serverId]);
 
             makeQuery.then(result => {
-                resolve(result.rowCount === 1);
+                if (result.rowCount === 1) {
+                    resolve({updated: true})
+                } else {
+                    resolve({})
+                }
             }).catch(err => reject(err));
         });
     }
@@ -103,7 +155,11 @@ class IqModels extends Model {
             , [uid, serverId, iq]);
 
             makeQuery.then(result => {
-                resolve(result.rowCount === 1);
+                if (result.rowCount === 1) {
+                    resolve({inserted: true})
+                } else {
+                    resolve({})
+                }
             }).catch(err => reject(err));
         });
     }

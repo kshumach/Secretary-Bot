@@ -98,9 +98,9 @@ class Actions {
         if(targetUser === '328946580633812993') return;
         const changeType = contents[2].slice(0,2) === '--' ? 0 : 1;
         // Set amount to 10 if it's over or 1 if no amount was specified.
-        const amount = (parseInt(contents[2].slice(2)) > 10 ? 10 : parseInt(contents[2].slice(2))) || 1;
+        const amount = (parseInt(contents[2].slice(2)) > 1 ? 1 : parseInt(contents[2].slice(2))) || 1;
         if(parseInt(contents[2].slice(2)) > 10) {
-            message.reply(`Maximum iq change is 10 points. Making iq changes with 10 points instead of ${parseInt(contents[2].slice(2))}`)
+            message.reply(`Maximum iq change is 1 point. Making iq changes with 1 point instead of ${parseInt(contents[2].slice(2))}`)
         }
         const reason = contents[3] ? contents.filter((item) => { return contents.indexOf(item) > 2 }).join(' ') : 'No reason given.';
         if(targetUser === message.author.id && changeType === 1) {
@@ -109,11 +109,17 @@ class Actions {
                 .then(msg => msg.channel.send(punishMessage));
             return;
         }
-        // TODO: Make db calls
-        console.log(`${message.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} ${amount} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
-        message.channel.send(
-            `${message.guild.members.get(targetUser).user.username} has ${changeType === 0 ? `lost ${amount}`: `gained ${amount}`} iq `
-            + `${reason ? `${reason}` : `for no real reason other than the fact that <@${message.author.username}> ${changeType === 0 ? 'hates' : 'loves'} you`}`);
+
+        console.log(`${message.author.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} ${amount} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
+        IqRoutes.adjustIq(targetUser, message.guild.id, changeType, message.author.id, reason).then(result => {
+            if ('error' in result) {
+                message.channel.send(result.error);
+            } else {
+                message.channel.send(
+                    `${message.guild.members.get(targetUser).user.username} has ${changeType === 0 ? `lost ${amount}`: `gained ${amount}`} iq `
+                    + `${reason ? `${reason}` : `for no real reason other than the fact that <@${message.author.username}> ${changeType === 0 ? 'hates' : 'loves'} you`}`);
+            }
+        });
     }
 
     static checkIqMessageValidity(messageContents) {
@@ -140,23 +146,14 @@ class Actions {
         const iq = contents[2];
 
         const successMessage = `Set ${contents[1]} iq to ${iq}.`;
-        const failMessage = `Failed to set iq.`;
 
         IqRoutes.setUserIq(targetUser, message.guild.id, iq, message.author.id)
             .then(result => {
-                console.log(result);
-                if(typeof result === 'object') {
-                    if(result && 'error' in result) {
-                        message.channel.send(result.error);
-                    } else if(result && !'error' in result) {
-                        message.channel.send(successMessage);
-                    } else {
-                        message.channel.send(failMessage)
-                    }
+                if('error' in result) {
+                    message.channel.send(result.error);
                 } else {
-                    result ? message.channel.send(successMessage) : message.channel.send(failMessage);
+                    message.channel.send(successMessage);
                 }
-
             }).catch(error => console.error(error));
     }
 
@@ -166,6 +163,21 @@ class Actions {
 
     static getIq(message) {
         const contents = message.content.split(' ');
+        const user = contents[1].slice(2, contents[1].length-1);
+
+        IqRoutes.getUserIq(user, message.guild.id).then(result => {
+            if ('error' in result) {
+                console.log('IM HERE WITH AN ERROR', result);
+                message.channel.send(result.error);
+            } else {
+                console.log('IM HERE WITH NO ERROR', result);
+                message.channel.send(`${contents[1]} iq is currently ${result.iq}`);
+            }
+        }).catch(err => console.error(err));
+    }
+
+    static checkGetIqValidity(messageContents) {
+
     }
 
     static handleStandardMessage(message) {

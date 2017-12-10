@@ -18,6 +18,14 @@ class IqActions {
             console.error(e);
         }
     }
+
+    static async adjustIq(uid, serverId, type, triggerUser, reason) {
+        try {
+            return await IqModels.adjustIq(uid, serverId, parseInt(type), triggerUser, reason)
+        } catch (e) {
+            console.error(e);
+        }
+    }
 }
 
 module.exports = IqActions;
