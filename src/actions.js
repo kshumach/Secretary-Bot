@@ -1,5 +1,7 @@
 'use strict';
 
+const IqRoutes = require('../routes/iq');
+
 // Test server: 328967450400129024
 // Live server: 328388894884102144
 
@@ -134,11 +136,32 @@ class Actions {
 
     static setIq(message) {
         const contents = message.content.split(' ');
+        const targetUser = contents[1].slice(2, contents[1].length-1);
+        const iq = contents[2];
 
+        const successMessage = `Set ${contents[1]} iq to ${iq}.`;
+        const failMessage = `Failed to set iq.`;
+
+        IqRoutes.setUserIq(targetUser, message.guild.id, iq, message.author.id)
+            .then(result => {
+                console.log(result);
+                if(typeof result === 'object') {
+                    if(result && 'error' in result) {
+                        message.channel.send(result.error);
+                    } else if(result && !'error' in result) {
+                        message.channel.send(successMessage);
+                    } else {
+                        message.channel.send(failMessage)
+                    }
+                } else {
+                    result ? message.channel.send(successMessage) : message.channel.send(failMessage);
+                }
+
+            }).catch(error => console.error(error));
     }
 
     static checkSetIqValidity(messageContents) {
-        const userMentionRegex = /<@[0-9]*>/g;
+
     }
 
     static getIq(message) {

@@ -4,21 +4,19 @@ const IqModels = require('../db/models/iq');
 
 class IqActions {
     static async getUserIq(uid, serverId) {
-        await IqModels.getIq(uid, serverId)
-            .then(result => {
-                return result
-            }).catch(err => {
-                console.error(err);
-            })
+        try {
+            return await IqModels.getIq(uid, serverId);
+        } catch(e) {
+            console.error(e);
+        }
     }
 
-    static async setUserIq(uid, serverId, adminId) {
-        await IqModels.setIq(uid, serverId, adminId)
-            .then(result => {
-                return result;
-            }).catch(err => {
-                console.error(err);
-            })
+    static async setUserIq(uid, serverId, iq, adminId) {
+        try {
+            return await IqModels.setIq(uid, serverId, parseInt(iq), adminId);
+        } catch (e) {
+            console.error(e);
+        }
     }
 }
 

@@ -22,6 +22,7 @@ class Model {
             pool.connect(function(err, client, done) {
                 if(err) {
                     console.log('error fetching client from pool', err);
+                    done();
                     return reject(err);
                 }
                 client.query(query, params, function(err, result) {
@@ -29,7 +30,7 @@ class Model {
                         console.log('error running query', err);
                         return reject(err);
                     }
-                    release();
+                    done();
                     return resolve(result);
                 });
             });

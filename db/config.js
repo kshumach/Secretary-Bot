@@ -1,5 +1,5 @@
 const config = {
-    user: 'bot', //env var: PGUSER
+    user: 'postgres', //env var: PGUSER
     database: 'secbot', //env var: PGDATABASE
     password: 'password', //env var: PGPASSWORD
     host: 'localhost', // Server hosting the postgres database
@@ -8,5 +8,4 @@ const config = {
     idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
 };
 
-
-export default config;
+module.exports = config;

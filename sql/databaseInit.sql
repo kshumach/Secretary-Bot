@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS iq_points (
     user_id VARCHAR(50),
     server_id VARCHAR(50),
-    IQ INT DEFAULT 120,
+    iq INT DEFAULT 120,
     PRIMARY KEY (user_id, server_id)
 );
 
