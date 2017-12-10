@@ -2,7 +2,7 @@
 
 /*
     STANDARDS:
-        - Return false always whenever something fails/returns an empty set
+        - Return {} always whenever something fails/returns an empty set
         - Return object with error property for special cases (Permissions)
         - Return true for updates/deletes/inserts
         - Return the result set for selects
@@ -37,7 +37,8 @@ class IqModels extends Model {
             IqModels.isAdmin(adminId).then(isAdmin => {
                 if (isAdmin) {
                     IqModels.checkEntry(uid, serverId).then(result => {
-                        if (result) {
+                        if (result.exists) {
+                            console.log(result);
                             if (result.iq !== iq) {
                                 IqModels.updateEntry(uid, serverId, iq).then(result => {
                                     resolve(result);
@@ -90,7 +91,7 @@ class IqModels extends Model {
             , [uid, triggerUser, serverId, type, reason]);
 
             IqModels.checkEntry(uid, serverId).then(result => {
-                if (result) {
+                if (result.exists) {
                     IqModels.setIqWithoutChecks(uid, serverId, type).then(result => {
                         if ('error' in result) {
                             resolve(result);
@@ -120,9 +121,9 @@ class IqModels extends Model {
 
             makeQuery.then(result => {
                 if (result.rowCount === 1) {
-                    resolve(result.rows[0]);
+                    resolve({ exists: true, iq: result.rows[0].iq });
                 } else {
-                    resolve({});
+                    resolve({ exists: false })
                 }
             }).catch(err => reject(err));
         })
