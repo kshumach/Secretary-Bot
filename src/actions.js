@@ -1,9 +1,15 @@
 'use strict';
 
+const IqRoutes = require('../routes/iq');
+
 // Test server: 328967450400129024
 // Live server: 328388894884102144
 
 class Actions {
+
+    constructor() {
+        this.userMentionRegex = /<@[0-9]*>/g;
+    }
 
     // CEO methods
     static handleMention(message) {
@@ -37,7 +43,7 @@ class Actions {
     }
 
     static displayHelp(message) {
-        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n\nFor specific command help, type in a command with no arguments.";
+        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n#setiq\n#getiq\n\nFor specific command help, type in a command with no arguments.";
         message.channel.send(help);
     }
 
@@ -92,9 +98,9 @@ class Actions {
         if(targetUser === '328946580633812993') return;
         const changeType = contents[2].slice(0,2) === '--' ? 0 : 1;
         // Set amount to 10 if it's over or 1 if no amount was specified.
-        const amount = (parseInt(contents[2].slice(2)) > 10 ? 10 : parseInt(contents[2].slice(2))) || 1;
+        const amount = (parseInt(contents[2].slice(2)) > 1 ? 1 : parseInt(contents[2].slice(2))) || 1;
         if(parseInt(contents[2].slice(2)) > 10) {
-            message.reply(`Maximum iq change is 10 points. Making iq changes with 10 points instead of ${parseInt(contents[2].slice(2))}`)
+            message.reply(`Maximum iq change is 1 point. Making iq changes with 1 point instead of ${parseInt(contents[2].slice(2))}`)
         }
         const reason = contents[3] ? contents.filter((item) => { return contents.indexOf(item) > 2 }).join(' ') : 'No reason given.';
         if(targetUser === message.author.id && changeType === 1) {
@@ -103,11 +109,17 @@ class Actions {
                 .then(msg => msg.channel.send(punishMessage));
             return;
         }
-        // TODO: Make db calls
-        console.log(`${message.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} ${amount} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
-        message.channel.send(
-            `${message.guild.members.get(targetUser).user.username} has ${changeType === 0 ? `lost ${amount}`: `gained ${amount}`} iq `
-            + `${reason ? `${reason}` : `for no real reason other than the fact that <@${message.author.username}> ${changeType === 0 ? 'hates' : 'loves'} you`}`);
+
+        console.log(`${message.author.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} ${amount} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
+        IqRoutes.adjustIq(targetUser, message.guild.id, changeType, message.author.id, reason).then(result => {
+            if ('error' in result) {
+                message.channel.send(result.error);
+            } else {
+                message.channel.send(
+                    `${message.guild.members.get(targetUser).user.username} has ${changeType === 0 ? `lost ${amount}`: `gained ${amount}`} iq `
+                    + `${reason ? `${reason}` : `for no real reason other than the fact that <@${message.author.username}> ${changeType === 0 ? 'hates' : 'loves'} you`}`);
+            }
+        });
     }
 
     static checkIqMessageValidity(messageContents) {
@@ -128,20 +140,101 @@ class Actions {
         return false;
     }
 
+    static setIq(message) {
+        const contents = message.content.split(' ');
+        const errorMessage = Actions.checkSetIqValidity(contents);
+        if(errorMessage) {
+            message.reply(errorMessage);
+            return;
+        }
+
+        const targetUser = contents[1].slice(2, contents[1].length-1);
+        const iq = contents[2];
+
+        const successMessage = `Set ${contents[1]} iq to ${iq}.`;
+
+        IqRoutes.setUserIq(targetUser, message.guild.id, iq, message.author.id)
+            .then(result => {
+                if('error' in result) {
+                    message.channel.send(result.error);
+                } else {
+                    message.channel.send(successMessage);
+                }
+            }).catch(error => console.error(error));
+    }
+
+    static checkSetIqValidity(messageContents) {
+        const userMentionRegex = /<@[0-9]*>/g;
+        const valueRegex = /[0-9]*/g;
+        if (messageContents.length === 1) {
+            return 'Expecting at least 2 arguments but got none. Type #setiq --help for info.';
+        }
+        if (messageContents.length > 1 && messageContents[1] === '--help') {
+            return 'Type #getiq [user mention] [iq value] to set the mentioned user\'s iq to the specified value.\nNote: triggering user must be an admin.'
+        }
+        if (!(messageContents.length > 1 && userMentionRegex.test(messageContents[1]) && valueRegex.test(messageContents[2]))) {
+            return 'Invalid form. Type #setiq --help for info.'
+        }
+
+        return false;
+    }
+
+    static getIq(message) {
+        const contents = message.content.split(' ');
+        const errorMessage = Actions.checkGetIqValidity(contents);
+        if(errorMessage) {
+            message.reply(errorMessage);
+            return;
+        }
+
+        const user = contents[1].slice(2, contents[1].length-1);
+
+        IqRoutes.getUserIq(user, message.guild.id).then(result => {
+            if ('error' in result) {
+                console.log('IM HERE WITH AN ERROR', result);
+                message.channel.send(result.error);
+            } else {
+                console.log('IM HERE WITH NO ERROR', result);
+                message.channel.send(`${contents[1]} iq is currently ${result.iq}`);
+            }
+        }).catch(err => console.error(err));
+    }
+
+    static checkGetIqValidity(messageContents) {
+        if (messageContents.length === 1) {
+            return 'Expecting at least 1 argument but got none. Type #getiq --help for info.';
+        }
+        if (messageContents.length > 1 && messageContents[1] === '--help') {
+            return 'Type #getiq [user mention] to get the mentioned user\'s current iq.'
+        }
+        return false;
+    }
+
     static handleStandardMessage(message) {
         switch(message.content.split(' ')[0]) {
             case '#help':
-                return Actions.displayHelp(message);
+                Actions.displayHelp(message);
+                break;
             case '#sched':
-                return Actions.displayCurrentSchedule(message);
+                Actions.displayCurrentSchedule(message);
+                break;
             case '#book':
-                return Actions.bookAppointments(message);
+                Actions.bookAppointments(message);
+                break;
             case '#delete':
-                return Actions.deleteMessages(message);
+                Actions.deleteMessages(message);
+                break;
             case '#iq':
-                return Actions.handleIqPoints(message);
+                Actions.handleIqPoints(message);
+                break;
+            case '#setiq':
+                Actions.setIq(message);
+                break;
+            case '#getiq':
+                Actions.getIq(message);
+                break;
             default:
-                return;
+                break;
         }
     }
 }
