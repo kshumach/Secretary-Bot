@@ -38,7 +38,6 @@ class IqModels extends Model {
                 if (isAdmin) {
                     IqModels.checkEntry(uid, serverId).then(result => {
                         if (result.exists) {
-                            console.log(result);
                             if (result.iq !== iq) {
                                 IqModels.updateEntry(uid, serverId, iq).then(result => {
                                     resolve(result);

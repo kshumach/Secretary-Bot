@@ -191,10 +191,8 @@ class Actions {
 
         IqRoutes.getUserIq(user, message.guild.id).then(result => {
             if ('error' in result) {
-                console.log('IM HERE WITH AN ERROR', result);
                 message.channel.send(result.error);
             } else {
-                console.log('IM HERE WITH NO ERROR', result);
                 message.channel.send(`${contents[1]} iq is currently ${result.iq}`);
             }
         }).catch(err => console.error(err));
