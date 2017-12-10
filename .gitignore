@@ -4,4 +4,3 @@ secrets
 
 # Dependency directories
 node_modules
-/db/config.js
