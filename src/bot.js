@@ -4,10 +4,9 @@ const Actions = require('./actions');
 const Discord = require('discord.js');
 const Requests = require('./requests');
 const { RegexList} = require('../constants/regexList');
-const Token = require('../secrets/token');
+const Token = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_TOKEN_MAIN : process.env.BOT_TOKEN_TEST;
 
 const client = new Discord.Client();
-const token = Token;
 const botId = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_ID_MAIN : process.env.BOT_ID_TEST;
 let requests = '';
 
@@ -36,4 +35,4 @@ client.on('message', message => {
     }
 });
 
-client.login(token);
+client.login(Token);
