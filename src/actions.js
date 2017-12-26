@@ -1,9 +1,8 @@
 'use strict';
 
 const IqRoutes = require('../routes/iq');
-
-// Test server: 328967450400129024
-// Live server: 328388894884102144
+const EmojiRoutes = require('../routes/emoji');
+const { RegexList} = require('../constants/regexList');
 
 class Actions {
 
@@ -62,12 +61,11 @@ class Actions {
     // General Functionality
     static deleteMessages(message) {
         let amount = message.content.split(' ')[1];
-        const errorMessageRegex = /Provided too few or too many messages to delete. Must provide at least 2 and at most 100 messages to delete/g;
         // Delete the messages
-        message.channel.bulkDelete(amount)
+        message.channel.bulkDelete(parseInt(amount) + 1)
             .then(msg => console.log(`${message.author.username} requested that ${amount} messages be deleted on ${new Date()}`))
             .catch(err => {
-                if(errorMessageRegex.test(err.message)) {
+                if(RegexList.errorMessageRegex.test(err.message)) {
                     message.channel.send("Provided too few or too many messages to delete. Must provide at least 2 and at most 100 messages to delete")
                         .catch(console.error);
                 } else {
@@ -121,18 +119,16 @@ class Actions {
     }
 
     static checkIqMessageValidity(messageContents) {
-        const userMentionRegex = /<@[!0-9]*>/g;
-        const iqChangeRegex = /(--|\+\+)[0-9]*/g;
         if(messageContents.length === 1) {
             return `Expecting several arguments but got none. Type #iq --help for more info.`
         }
         if(messageContents[1] && messageContents[1] === '--help') {
             return `#iq help. Specify the user to adjust iq for, followed by the amount to subtract or give (-- or ++) and a reason (optional). For example #iq [user mention] --5 [reason]`;
         }
-        if(!(messageContents[1] && userMentionRegex.test(messageContents[1]))) {
+        if(!(messageContents[1] && RegexList.userMentionRegex.test(messageContents[1]))) {
             return 'Invalid format on user. Expecting a mention of the user to adjust iq points for';
         }
-        if(!(messageContents[2] && iqChangeRegex.test(messageContents[2]))) {
+        if(!(messageContents[2] && RegexList.iqChangeRegex.test(messageContents[2]))) {
             return 'Invalid format on number of points to deduct/give. Expecting input in the form --[amount] or ++[amount] where amount is a number';
         }
         return false;
@@ -164,15 +160,15 @@ class Actions {
     }
 
     static checkSetIqValidity(messageContents) {
-        const userMentionRegex = /<@![0-9]*>/g;
-        const valueRegex = /[0-9]*/g;
         if (messageContents.length === 1) {
             return 'Expecting at least 2 arguments but got none. Type #setiq --help for info.';
         }
         if (messageContents.length > 1 && messageContents[1] === '--help') {
             return 'Type #getiq [user mention] [iq value] to set the mentioned user\'s iq to the specified value.\nNote: triggering user must be an admin.'
         }
-        if (!(messageContents.length > 1 && userMentionRegex.test(messageContents[1]) && valueRegex.test(messageContents[2]))) {
+        if (!(messageContents.length > 1
+                && RegexList.userMentionRegex.test(messageContents[1])
+                && RegexList.valueRegex.test(messageContents[2]))) {
             return 'Invalid form. Type #setiq --help for info.'
         }
 
@@ -210,7 +206,29 @@ class Actions {
         return false;
     }
 
+    static handleEmojis(message) {
+        const emojis = message.context.match(RegexList.emojiRegex);
+        console.log('emoji', emojis);
+        EmojiRoutes.checkEmoji(emojis, message.guild.id).then(result => {
+            if(result.exists) {
+                EmojiRoutes.updateEmoji(emojis, message.guild.id).then(result => {
+                    return ('error' in result);
+                }).catch(error => console.error(error));
+            } else {
+                EmojiRoutes.addEmoji(emojis, message.guild.id).then(result => {
+                    return ('error' in result);
+                }).catch(error => console.error(error));
+            }
+        }).then((result) => {
+            if(result) {
+                EmojiRoutes.updateUserEmojiUsage(emojis, message.guild.id, message.author.id)
+                    .catch(error => console.error(error));
+            }
+        }).catch(error => console.error(error))
+    }
+
     static handleStandardMessage(message) {
+        console.log(message.content);
         switch(message.content.split(' ')[0]) {
             case '#help':
                 Actions.displayHelp(message);
