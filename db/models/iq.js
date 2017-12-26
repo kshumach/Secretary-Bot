@@ -33,14 +33,14 @@ class IqModels {
                             if (result.iq !== iq) {
                                 IqModels.updateEntry(uid, serverId, iq).then(result => {
                                     resolve(result);
-                                });
+                                }).catch(err => reject(err));
                             } else {
                                 resolve({error: `User's iq is already set to ${iq}. No changes made`});
                             }
                         } else {
                             IqModels.insertEntry(uid, serverId, iq).then(result => {
                                 resolve(result);
-                            });
+                            }).catch(err => reject(err));;
                         }
                     }).catch(err => reject(err));
                 } else {
@@ -61,39 +61,32 @@ class IqModels {
             , [uid, serverId]);
 
             makeQuery.then(result => {
-                if (result.length === 1) {
+                if (result) {
                     resolve(result);
-                } else {
-                    resolve({error: 'Could not update iq'});
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({error: 'Could not update iq'}));
         })
     }
 
     static adjustIq(uid, serverId, type, triggerUser, reason) {
         return new Promise((resolve, reject) => {
-
-            const makeQuery = Model.performQuery(`
-                INSERT INTO iq_points_alterations 
-                    (target_user, trigger_user, server_id, change_type, reason)
-                    VALUES
-                    ($1, $2, $3, $4, $5)
-            `
-            , [uid, triggerUser, serverId, type, reason]);
-
             IqModels.checkEntry(uid, serverId).then(result => {
                 if (result.exists) {
                     IqModels.setIqWithoutChecks(uid, serverId, type).then(result => {
-                        if ('error' in result) {
-                            resolve(result);
-                        } else {
-                            makeQuery.then(result => {
-                                if (result.length === 1) {
+                        if (result) {
+                            const query = `
+                                INSERT INTO iq_points_alterations
+                                    (target_user, trigger_user, server_id, change_type, reason)
+                                    VALUES
+                                    ($1, $2, $3, $4, $5)
+                            `;
+                            const params = [uid, triggerUser, serverId, type, reason];
+
+                            Model.performQuery(query, params).then(result => {
+                                if (result) {
                                     resolve(result);
-                                } else {
-                                    resolve({error: 'Could not make record'});
                                 }
-                            }).catch(err => reject(err));
+                            }).catch(err => reject({error: 'Could not make record'}));
                         }
                     }).catch(err => reject(err));
                 }
@@ -129,12 +122,10 @@ class IqModels {
             , [iq, uid, serverId]);
 
             makeQuery.then(result => {
-                if (result.length === 1) {
+                if (result) {
                     resolve({updated: true})
-                } else {
-                    resolve({})
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({ error: 'Failed to update iq.' }));
         });
     }
 
@@ -147,12 +138,10 @@ class IqModels {
             , [uid, serverId, iq]);
 
             makeQuery.then(result => {
-                if (result.length === 1) {
+                if (result) {
                     resolve({inserted: true})
-                } else {
-                    resolve({})
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({ error: 'failed to insert entry.' }));
         });
     }
 

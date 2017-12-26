@@ -1,6 +1,7 @@
 'use strict';
 // TODO: Make return values more consistent
 const Model = require('./database');
+const { pgp } = require('../../db/pgp');
 
 class EmojiModels {
 
@@ -8,32 +9,27 @@ class EmojiModels {
         return new Promise((resolve, reject) => {
             const makeQuery = Model.performQuery(`
                 select * from emojis 
-                    where emoji IN $1
+                    where emoji IN ($1)
                     and server_id = $2
             `
             ,[emoji, serverId]);
-
             makeQuery.then((result) => {
                resolve({ exists: result.length === 1 })
             }).catch(err => reject(err));
         });
     }
 
-    static addEmoji(emoji, serverId) {
+    static addEmoji(emoji) {
+        console.log('emoji list', emoji);
         return new Promise((resolve, reject) => {
-           const makeQuery = Model.performQuery(`
-                insert into emojis
-                    values ($1, $2)
-           `
-           , [emoji, serverId]);
+            const cs = pgp.helpers.ColumnSet(['emoji', 'server_id', 'usage_count'], { table: 'emojis' });
+            const makeQuery = Model.performQuery(pgp.helpers.insert(emoji, cs), []);
 
-           makeQuery.then(result => {
-               if(result.length === 1) {
+            makeQuery.then(result => {
+               if(result) {
                    resolve(result);
-               } else {
-                   resolve({ error: 'Failed at adding emoji' })
                }
-           }).catch(err => reject(err));
+            }).catch(err => reject({ error: 'Failed at adding emoji' }));
         });
     }
 
@@ -48,12 +44,10 @@ class EmojiModels {
                 , [emoji, serverId]);
 
             makeQuery.then(result => {
-                if(result.length === 1) {
+                if(result) {
                     resolve(result);
-                } else {
-                    resolve({ error: 'Failed at updating emoji' })
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({ error: 'Failed at updating emoji' }));
         });
     }
 
@@ -66,12 +60,10 @@ class EmojiModels {
             , [emoji, serverId, user]);
 
             makeQuery.then(result => {
-                if(result.length === 1) {
+                if(result) {
                     resolve(result);
-                } else {
-                    resolve({ error: 'Failed at adding emoji usage info' })
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({ error: 'Failed at adding emoji usage info' }));
         })
     }
 }

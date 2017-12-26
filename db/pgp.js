@@ -19,4 +19,4 @@ const pgp = require('pg-promise')(initOptions);
 
 const db = pgp(config);
 
-module.exports = db;
+module.exports = { db, pgp };

@@ -82,6 +82,7 @@ class Actions {
     }
 
     static handleIqPoints(message) {
+        console.log('MESSAGE', message.content);
         const contents = message.content.split(' ');
         const errorMessage = Actions.checkIqMessageValidity(contents);
         if(errorMessage) {
@@ -106,11 +107,12 @@ class Actions {
             return;
         }
 
-        console.log(`${message.author.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} ${amount} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
+
         IqRoutes.adjustIq(targetUser, message.guild.id, changeType, message.author.id, reason).then(result => {
             if ('error' in result) {
                 message.channel.send(result.error);
             } else {
+                console.log(`${message.author.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} ${amount} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
                 message.channel.send(
                     `${message.guild.members.get(targetUser).user.username} has ${changeType === 0 ? `lost ${amount}`: `gained ${amount}`} iq `
                     + `${reason ? `${reason}` : `for no real reason other than the fact that <@${message.author.username}> ${changeType === 0 ? 'hates' : 'loves'} you`}`);
@@ -119,6 +121,7 @@ class Actions {
     }
 
     static checkIqMessageValidity(messageContents) {
+        console.log('contents', messageContents);
         if(messageContents.length === 1) {
             return `Expecting several arguments but got none. Type #iq --help for more info.`
         }
@@ -207,28 +210,27 @@ class Actions {
     }
 
     static handleEmojis(message) {
-        const emojis = message.context.match(RegexList.emojiRegex);
+        const emojis = message.content.match(RegexList.emojiRegex);
         console.log('emoji', emojis);
         EmojiRoutes.checkEmoji(emojis, message.guild.id).then(result => {
             if(result.exists) {
-                EmojiRoutes.updateEmoji(emojis, message.guild.id).then(result => {
-                    return ('error' in result);
-                }).catch(error => console.error(error));
+                // EmojiRoutes.updateEmoji(emojis, message.guild.id).then(result => {
+                //     return ('error' in result);
+                // }).catch(error => console.error(error));
             } else {
                 EmojiRoutes.addEmoji(emojis, message.guild.id).then(result => {
                     return ('error' in result);
                 }).catch(error => console.error(error));
             }
         }).then((result) => {
-            if(result) {
-                EmojiRoutes.updateUserEmojiUsage(emojis, message.guild.id, message.author.id)
-                    .catch(error => console.error(error));
-            }
+            // if(result) {
+            //     EmojiRoutes.updateUserEmojiUsage(emojis, message.guild.id, message.author.id)
+            //         .catch(error => console.error(error));
+            // }
         }).catch(error => console.error(error))
     }
 
     static handleStandardMessage(message) {
-        console.log(message.content);
         switch(message.content.split(' ')[0]) {
             case '#help':
                 Actions.displayHelp(message);

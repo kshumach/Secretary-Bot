@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS emojis (
     emoji varchar(255),
     server_id varchar(50),
-    usage_count INT DEFAULT 1,
+    usage_count INT,
     PRIMARY KEY (emoji, server_id)
 );
 
