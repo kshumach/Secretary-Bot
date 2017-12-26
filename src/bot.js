@@ -19,7 +19,7 @@ client.on('ready', () => {
 client.on('message', message => {
     // Check to see if message author is not the bot
     if(message.author.id === botId && message.content.split(' ')[0] === '#iq') {
-        Actions.handleIqPoints(message);
+        Actions.handleIqPoints(message, botId);
     }
     if(message.author.id !== botId){
         if(message.mentions.users.exists('id', botId)) {
@@ -27,7 +27,7 @@ client.on('message', message => {
         } else if(message.mentions.roles.exists('name', 'Test') || message.mentions.roles.exists('name', 'Mr. CEO')) {
             Actions.handleCeoMention(message);
         } else {
-            Actions.handleStandardMessage(message);
+            Actions.handleStandardMessage(message, botId);
         }
     }
     if(RegexList.emojiRegex.test(message.content)) {
