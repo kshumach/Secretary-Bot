@@ -3,12 +3,11 @@
 const Actions = require('./actions');
 const Discord = require('discord.js');
 const Requests = require('./requests');
-const Token = require('../secrets/token');
+const { RegexList} = require('../constants/regexList');
+const Token = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_TOKEN_MAIN : process.env.BOT_TOKEN_TEST;
 
 const client = new Discord.Client();
-const token = Token;
-const botId = '328946580633812993';
-
+const botId = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_ID_MAIN : process.env.BOT_ID_TEST;
 let requests = '';
 
 client.on('ready', () => {
@@ -31,6 +30,9 @@ client.on('message', message => {
             Actions.handleStandardMessage(message);
         }
     }
+    if(RegexList.emojiRegex.test(message.content)) {
+        Actions.handleEmojis(message);
+    }
 });
 
-client.login(token);
+client.login(Token);

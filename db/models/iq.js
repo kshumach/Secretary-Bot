@@ -1,31 +1,23 @@
 'use strict';
-
-/*
-    STANDARDS:
-        - Return {} always whenever something fails/returns an empty set
-        - Return object with error property for special cases (Permissions)
-        - Return true for updates/deletes/inserts
-        - Return the result set for selects
- */
-
+// TODO: Make return values more consistent
 const Model = require('./database');
 
-class IqModels extends Model {
+class IqModels {
 
     static getIq(uid, serverId) {
         return new Promise((resolve, reject) => {
 
             const makeQuery = Model.performQuery(`
-                SELECT IQ FROM iq_points
+               SELECT IQ FROM iq_points
                     WHERE user_id = $1 AND server_id = $2
             `
                 , [uid, serverId]);
 
             makeQuery.then(result => {
-                if (result.rowCount === 0) {
+                if (result.length === 0) {
                     resolve({error: 'Given user, server pair does not exist. Set an iq for them with #setiq.'})
                 } else {
-                    resolve(result.rows[0]);
+                    resolve(result[0]);
                 }
             }).catch(err => reject(err))
         })
@@ -41,14 +33,14 @@ class IqModels extends Model {
                             if (result.iq !== iq) {
                                 IqModels.updateEntry(uid, serverId, iq).then(result => {
                                     resolve(result);
-                                });
+                                }).catch(err => reject(err));
                             } else {
                                 resolve({error: `User's iq is already set to ${iq}. No changes made`});
                             }
                         } else {
                             IqModels.insertEntry(uid, serverId, iq).then(result => {
                                 resolve(result);
-                            });
+                            }).catch(err => reject(err));;
                         }
                     }).catch(err => reject(err));
                 } else {
@@ -69,39 +61,32 @@ class IqModels extends Model {
             , [uid, serverId]);
 
             makeQuery.then(result => {
-                if (result.rowCount === 1) {
+                if (result) {
                     resolve(result);
-                } else {
-                    resolve({error: 'Could not update iq'});
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({error: 'Could not update iq'}));
         })
     }
 
     static adjustIq(uid, serverId, type, triggerUser, reason) {
         return new Promise((resolve, reject) => {
-
-            const makeQuery = Model.performQuery(`
-                INSERT INTO iq_points_alterations 
-                    (target_user, trigger_user, server_id, change_type, reason)
-                    VALUES
-                    ($1, $2, $3, $4, $5)
-            `
-            , [uid, triggerUser, serverId, type, reason]);
-
             IqModels.checkEntry(uid, serverId).then(result => {
                 if (result.exists) {
                     IqModels.setIqWithoutChecks(uid, serverId, type).then(result => {
-                        if ('error' in result) {
-                            resolve(result);
-                        } else {
-                            makeQuery.then(result => {
-                                if (result.rowCount === 1) {
+                        if (result) {
+                            const query = `
+                                INSERT INTO iq_points_alterations
+                                    (target_user, trigger_user, server_id, change_type, reason)
+                                    VALUES
+                                    ($1, $2, $3, $4, $5)
+                            `;
+                            const params = [uid, triggerUser, serverId, type, reason];
+
+                            Model.performQuery(query, params).then(result => {
+                                if (result) {
                                     resolve(result);
-                                } else {
-                                    resolve({error: 'Could not make record'});
                                 }
-                            }).catch(err => reject(err));
+                            }).catch(err => reject({error: 'Could not make record'}));
                         }
                     }).catch(err => reject(err));
                 }
@@ -119,8 +104,8 @@ class IqModels extends Model {
             , [uid, serverId]);
 
             makeQuery.then(result => {
-                if (result.rowCount === 1) {
-                    resolve({ exists: true, iq: result.rows[0].iq });
+                if (result.length === 1) {
+                    resolve({ exists: true, iq: result[0].iq });
                 } else {
                     resolve({ exists: false })
                 }
@@ -137,12 +122,10 @@ class IqModels extends Model {
             , [iq, uid, serverId]);
 
             makeQuery.then(result => {
-                if (result.rowCount === 1) {
+                if (result) {
                     resolve({updated: true})
-                } else {
-                    resolve({})
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({ error: 'Failed to update iq.' }));
         });
     }
 
@@ -155,12 +138,10 @@ class IqModels extends Model {
             , [uid, serverId, iq]);
 
             makeQuery.then(result => {
-                if (result.rowCount === 1) {
+                if (result) {
                     resolve({inserted: true})
-                } else {
-                    resolve({})
                 }
-            }).catch(err => reject(err));
+            }).catch(err => reject({ error: 'failed to insert entry.' }));
         });
     }
 
@@ -175,7 +156,7 @@ class IqModels extends Model {
             , [uid]);
 
             makeQuery.then(result => {
-                resolve(result.rowCount === 1) // Return true if user is an admin
+                resolve(result.length === 1) // Return true if user is an admin
             }).catch(err => reject(err))
         })
     }

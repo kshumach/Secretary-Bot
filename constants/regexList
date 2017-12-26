@@ -1,0 +1,7 @@
+exports.RegexList = {
+    errorMessageRegex: /Provided too few or too many messages to delete. Must provide at least 2 and at most 100 messages to delete/g,
+    userMentionRegex: /<@[!0-9]*>/g,
+    iqChangeRegex: /(--|\+\+)[0-9]*/g,
+    valueRegex: /[0-9]*/g,
+    emojiRegex: /<:[a-zA-z]+:[0-9]+>/g
+};
