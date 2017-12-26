@@ -67,19 +67,17 @@ class EmojiModels {
         });
     }
 
-    static updateUserEmojiUsage(emoji, serverId, user) {
+    static updateUserEmojiUsage(emoji) {
+        console.log('about to update user');
         return new Promise((resolve, reject) => {
-            const makeQuery = Model.performQuery(`
-                insert into emoji_usage (emoji, server_id, user_id)
-                values ($1, $2, $3)
-            `
-            , [emoji, serverId, user]);
+            const cs = pgp.helpers.ColumnSet(['emoji', 'server_id', 'user_id'], { table: 'emoji_usage' });
+            const makeQuery = Model.performQuery(pgp.helpers.insert(emoji, cs), []);
 
             makeQuery.then(result => {
                 if(result) {
                     resolve(result);
                 }
-            }).catch(err => reject({ error: 'Failed at adding emoji usage info' }));
+            }).catch(err => reject({ error: 'Failed at updating user emoji usage.' }));
         })
     }
 }

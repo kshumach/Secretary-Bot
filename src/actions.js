@@ -213,19 +213,20 @@ class Actions {
         const emojis = message.content.match(RegexList.emojiRegex);
         EmojiRoutes.checkEmoji(emojis, message.guild.id).then(result => {
             if(result.exists) {
-                EmojiRoutes.updateEmoji(emojis, message.guild.id).then(result => {
-                    return ('error' in result);
-                }).catch(error => console.error(error));
+                return EmojiRoutes.updateEmoji(emojis, message.guild.id).then(result => {
+                    return !('error' in result);
+                }).catch(error => message.channel.send(error));
             } else {
-                EmojiRoutes.addEmoji(emojis, message.guild.id).then(result => {
-                    return ('error' in result);
-                }).catch(error => console.error(error));
+                return EmojiRoutes.addEmoji(emojis, message.guild.id).then(result => {
+                    return !('error' in result);
+                }).catch(error => message.channel.send(error));
             }
         }).then((result) => {
-            // if(result) {
-            //     EmojiRoutes.updateUserEmojiUsage(emojis, message.guild.id, message.author.id)
-            //         .catch(error => console.error(error));
-            // }
+            console.log('tail', result);
+            if(result) {
+                EmojiRoutes.updateUserEmojiUsage(emojis, message.guild.id, message.author.id)
+                    .catch(error => message.channel.send(error));
+            }
         }).catch(error => console.error(error))
     }
 

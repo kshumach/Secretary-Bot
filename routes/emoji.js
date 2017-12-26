@@ -30,8 +30,8 @@ class EmojiActions {
     static async addEmoji(emoji, serverId) {
         // Create the insert list for the db model
         // Check if the emoji already exists in the filtered list, if it does update the usage count
-        const filteredEmojisList = Array.from(new Set(emoji));
-        const emojiInsertSet = filteredEmojisList.map(emoj => {
+        const uniqueEmojis = Array.from(new Set(emoji));
+        const emojiInsertSet = uniqueEmojis.map(emoj => {
             const usage = emoji.filter(emo => emo === emoj).length;
             return { emoji: emoj, server_id: serverId, usage_count: usage }
         });
@@ -43,9 +43,12 @@ class EmojiActions {
     }
 
     static async updateUserEmojiUsage(emoji, serverId, user) {
-        const emojis = emoji.map(emoji => { return [emoji, serverId] });
+        console.log('update route', emoji);
+        const emojiInsertSet = emoji.map(emoj => {
+            return { emoji: emoj, server_id: serverId, user_id: user }
+        });
         try {
-            return await EmojiModels.updateUserEmojiUsage(emojis, serverId, user);
+            return await EmojiModels.updateUserEmojiUsage(emojiInsertSet);
         } catch(e) {
             console.error(e);
         }
