@@ -8,8 +8,8 @@ class IqModels {
         return new Promise((resolve, reject) => {
 
             const makeQuery = Model.performQuery(`
-                SELECT * FROM iq_points_alterations
-                    WHERE target_user = '167885679341207552'
+               SELECT IQ FROM iq_points
+                    WHERE user_id = $1 AND server_id = $2
             `
                 , [uid, serverId]);
 
