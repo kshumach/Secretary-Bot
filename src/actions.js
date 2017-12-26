@@ -81,27 +81,27 @@ class Actions {
             .catch(console.error);
     }
 
-    static handleIqPoints(message) {
+    static handleIqPoints(message, botId) {
         console.log('MESSAGE', message.content);
-        const contents = message.content.split(' ');
-        const errorMessage = Actions.checkIqMessageValidity(contents);
+        const mention = message.content.match(RegexList.userMentionRegex);
+        const adjustment = message.content.match(RegexList.iqChangeRegex);
+        const helpRegex = /--help/;
+        const help = helpRegex.test(message.content);
+        const errorMessage = Actions.checkIqMessageValidity(mention, adjustment, help);
         if(errorMessage) {
             message.reply(errorMessage);
             return;
         }
-        const targetUser = contents[1].indexOf('!') === -1 ?
-            contents[1].slice(2, contents[1].length-1)
-            : contents[1].slice(3, contents[1].length-1);
-        if(targetUser === '328946580633812993') return;
-        const changeType = contents[2].slice(0,2) === '--' ? 0 : 1;
-        // Set amount to 10 if it's over or 1 if no amount was specified.
-        const amount = (parseInt(contents[2].slice(2)) > 1 ? 1 : parseInt(contents[2].slice(2))) || 1;
-        if(parseInt(contents[2].slice(2)) > 10) {
-            message.reply(`Maximum iq change is 1 point. Making iq changes with 1 point instead of ${parseInt(contents[2].slice(2))}`)
-        }
-        const reason = contents[3] ? contents.filter((item) => { return contents.indexOf(item) > 2 }).join(' ') : 'No reason given.';
+        const reasonTextArray = message.content.match(RegexList.textRegex);
+        const targetUser = mention[0].indexOf('!') === -1 ?
+            mention[0].slice(2, mention[0].length-1)
+            : mention[0].slice(3, mention[0].length-1);
+        if(targetUser === botId) return;
+        const changeType = adjustment[0] === '--' ? 0 : 1;
+        const reason = reasonTextArray ? reasonTextArray.join('') : 'No reason given.';
+        console.log('here', targetUser, changeType, reason);
         if(targetUser === message.author.id && changeType === 1) {
-            const punishMessage = `#iq ${message.author} --${amount} For trying to give themselves iq.`;
+            const punishMessage = `#iq ${message.author} -- For trying to give themselves iq.`;
             message.reply(`You can't give yourself iq you ${'<:pleb:237058273054818306>'}.`)
                 .then(msg => msg.channel.send(punishMessage));
             return;
@@ -112,27 +112,29 @@ class Actions {
             if ('error' in result) {
                 message.channel.send(result.error);
             } else {
-                console.log(`${message.author.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} ${amount} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
+                console.log(`${message.author.id} ${changeType === 0 ? 'deducted' : 'gave'} ${targetUser} iq on ${new Date()} in server: ${message.guild.id}.`, reason);
                 message.channel.send(
-                    `${message.guild.members.get(targetUser).user.username} has ${changeType === 0 ? `lost ${amount}`: `gained ${amount}`} iq `
+                    `${message.guild.members.get(targetUser).user.username} has ${changeType === 0 ? `lost`: `gained`} iq`
                     + `${reason ? `${reason}` : `for no real reason other than the fact that <@${message.author.username}> ${changeType === 0 ? 'hates' : 'loves'} you`}`);
             }
         });
     }
 
-    static checkIqMessageValidity(messageContents) {
-        console.log('contents', messageContents);
-        if(messageContents.length === 1) {
-            return `Expecting several arguments but got none. Type #iq --help for more info.`
+    static checkIqMessageValidity(mention, adjustment, help) {
+        if(help) {
+            return `#iq help. Specify the user to adjust iq for, followed by the type of change (-- or ++) and a reason (optional). For example #iq [user mention] -- [reason]`;
         }
-        if(messageContents[1] && messageContents[1] === '--help') {
-            return `#iq help. Specify the user to adjust iq for, followed by the amount to subtract or give (-- or ++) and a reason (optional). For example #iq [user mention] --5 [reason]`;
+        if(!mention && !adjustment) {
+            return `Expecting several arguments but got none or not enough. Type #iq --help for more info.`
         }
-        if(!(messageContents[1] && RegexList.userMentionRegex.test(messageContents[1]))) {
+        if(!mention) {
             return 'Invalid format on user. Expecting a mention of the user to adjust iq points for';
         }
-        if(!(messageContents[2] && RegexList.iqChangeRegex.test(messageContents[2]))) {
-            return 'Invalid format on number of points to deduct/give. Expecting input in the form --[amount] or ++[amount] where amount is a number';
+        if(!adjustment) {
+            return 'Invalid format on type of change. Expecting input in the form [user mention] [-- or ++]';
+        }
+        if(mention && mention.length > 1) {
+            return 'Can only change the iq of one user at a time.';
         }
         return false;
     }
@@ -230,7 +232,7 @@ class Actions {
         }).catch(error => console.error(error))
     }
 
-    static handleStandardMessage(message) {
+    static handleStandardMessage(message, botId) {
         switch(message.content.split(' ')[0]) {
             case '#help':
                 Actions.displayHelp(message);
@@ -245,7 +247,7 @@ class Actions {
                 Actions.deleteMessages(message);
                 break;
             case '#iq':
-                Actions.handleIqPoints(message);
+                Actions.handleIqPoints(message, botId);
                 break;
             case '#setiq':
                 Actions.setIq(message);
