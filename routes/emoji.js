@@ -4,9 +4,15 @@ const EmojiModels = require('../db/models/emoji');
 
 class EmojiActions {
     static async updateEmoji(emoji, serverId) {
-        const emojis = emoji.map(emoji => { return [emoji, serverId] });
+        const uniqueEmojis = Array.from(new Set(emoji));
+        // Create the insert list for the db model
+        // Check if the emoji already exists in the filtered list, if it does update the usage count
+        const emojiInsertSet = uniqueEmojis.map(emoj => {
+            const usage = emoji.filter(emo => emo === emoj).length;
+            return { emoji: emoj, server_id: serverId, usage_count: usage }
+        });
         try {
-            return await EmojiModels.updateEmojiCount(emojis, serverId);
+            return await EmojiModels.updateEmojiCount(emojiInsertSet, serverId, uniqueEmojis);
         } catch(e) {
             console.error(e);
         }
@@ -14,10 +20,8 @@ class EmojiActions {
 
     static async checkEmoji(emoji, serverId) {
         const uniqueEmojis = Array.from(new Set(emoji));
-        const emojis = `${uniqueEmojis.join(',')}`;
-        console.log('check', emojis);
         try {
-           return await EmojiModels.checkEmoji(emojis, serverId);
+           return await EmojiModels.checkEmoji(uniqueEmojis, serverId);
         } catch(e) {
             console.error(e);
         }
@@ -26,7 +30,7 @@ class EmojiActions {
     static async addEmoji(emoji, serverId) {
         // Create the insert list for the db model
         // Check if the emoji already exists in the filtered list, if it does update the usage count
-        const filteredEmojisList = emoji.filter((emoj, pos, arr) => { return arr.indexOf(emoj) === pos; });
+        const filteredEmojisList = Array.from(new Set(emoji));
         const emojiInsertSet = filteredEmojisList.map(emoj => {
             const usage = emoji.filter(emo => emo === emoj).length;
             return { emoji: emoj, server_id: serverId, usage_count: usage }

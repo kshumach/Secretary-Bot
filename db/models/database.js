@@ -20,7 +20,6 @@ class Model {
                     return connection.any(query, params);
                 })
                 .then(data => {
-                    console.log('here', query, data);
                     if (connection) {
                         connection.done();
                     }

@@ -69,7 +69,7 @@ class Actions {
                     message.channel.send("Provided too few or too many messages to delete. Must provide at least 2 and at most 100 messages to delete")
                         .catch(console.error);
                 } else {
-                    console.log(err);
+                    console.error(err);
                 }
             });
 
@@ -211,12 +211,11 @@ class Actions {
 
     static handleEmojis(message) {
         const emojis = message.content.match(RegexList.emojiRegex);
-        console.log('emoji', emojis);
         EmojiRoutes.checkEmoji(emojis, message.guild.id).then(result => {
             if(result.exists) {
-                // EmojiRoutes.updateEmoji(emojis, message.guild.id).then(result => {
-                //     return ('error' in result);
-                // }).catch(error => console.error(error));
+                EmojiRoutes.updateEmoji(emojis, message.guild.id).then(result => {
+                    return ('error' in result);
+                }).catch(error => console.error(error));
             } else {
                 EmojiRoutes.addEmoji(emojis, message.guild.id).then(result => {
                     return ('error' in result);
