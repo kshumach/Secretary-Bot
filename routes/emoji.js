@@ -43,7 +43,6 @@ class EmojiActions {
     }
 
     static async updateUserEmojiUsage(emoji, serverId, user) {
-        console.log('update route', emoji);
         const emojiInsertSet = emoji.map(emoj => {
             return { emoji: emoj, server_id: serverId, user_id: user }
         });

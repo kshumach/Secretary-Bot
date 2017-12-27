@@ -232,6 +232,25 @@ class Actions {
         }).catch(error => console.error(error))
     }
 
+    static handleReactions(emoji, userId, message) {
+        EmojiRoutes.checkEmoji(emoji, message.guild.id).then(result => {
+            if(result.exists) {
+                return EmojiRoutes.updateEmoji(emoji, message.guild.id).then(result => {
+                    return !('error' in result);
+                }).catch(error => message.channel.send(error));
+            } else {
+                return EmojiRoutes.addEmoji(emoji, message.guild.id).then(result => {
+                    return !('error' in result);
+                }).catch(error => message.channel.send(error));
+            }
+        }).then((result) => {
+            if(result) {
+                EmojiRoutes.updateUserEmojiUsage(emoji, message.guild.id, userId)
+                    .catch(error => message.channel.send(error));
+            }
+        }).catch(error => console.error(error))
+    }
+
     static handleStandardMessage(message, botId) {
         switch(message.content.split(' ')[0]) {
             case '#help':

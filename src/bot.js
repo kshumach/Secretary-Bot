@@ -35,4 +35,9 @@ client.on('message', message => {
     }
 });
 
+client.on('messageReactionAdd', (reaction, user) => {
+    const emoji = Array.of(`<:${reaction.emoji.name}:${reaction.emoji.id}>`);
+    Actions.handleReactions(emoji, user.id, reaction.message);
+});
+
 client.login(Token);
