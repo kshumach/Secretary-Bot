@@ -224,7 +224,6 @@ class Actions {
                 }).catch(error => message.channel.send(error));
             }
         }).then((result) => {
-            console.log('tail', result);
             if(result) {
                 EmojiRoutes.updateUserEmojiUsage(emojis, message.guild.id, message.author.id)
                     .catch(error => message.channel.send(error));
