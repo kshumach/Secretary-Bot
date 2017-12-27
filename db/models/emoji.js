@@ -68,7 +68,6 @@ class EmojiModels {
     }
 
     static updateUserEmojiUsage(emoji) {
-        console.log('about to update user');
         return new Promise((resolve, reject) => {
             const cs = pgp.helpers.ColumnSet(['emoji', 'server_id', 'user_id'], { table: 'emoji_usage' });
             const makeQuery = Model.performQuery(pgp.helpers.insert(emoji, cs), []);

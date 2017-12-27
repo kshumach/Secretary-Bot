@@ -8,12 +8,9 @@ const Token = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_TOKEN_MAIN : 
 
 const client = new Discord.Client();
 const botId = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_ID_MAIN : process.env.BOT_ID_TEST;
-let requests = '';
 
 client.on('ready', () => {
     console.log('I am ready!');
-    // Create new requests queue object
-    requests = new Requests();
 });
 
 client.on('message', message => {
@@ -32,6 +29,13 @@ client.on('message', message => {
     }
     if(RegexList.emojiRegex.test(message.content)) {
         Actions.handleEmojis(message);
+    }
+});
+
+client.on('messageReactionAdd', (reaction, user) => {
+    const emoji = Array.of(reaction.emoji.toString());
+    if(RegexList.emojiRegex.test(emoji)) {  // Only track custom emojis
+        Actions.handleReactions(emoji, user.id, reaction.message);
     }
 });
 
