@@ -4,5 +4,7 @@ exports.RegexList = {
     iqChangeRegex: /(--|\+\+)+/g,
     valueRegex: /[0-9]*/g,
     emojiRegex: /<:[a-zA-z]+:[0-9]+>/g,
-    textRegex: /[^#:a-zA-Z][a-zA-Z]+/g
+    textRegex: /[^#:a-zA-Z][a-zA-Z]+/g,
+    voteRegexYes: /(\+1|yes)+/,
+    voteRegexNo: /(-1|no)+/
 };
