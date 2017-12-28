@@ -328,7 +328,7 @@ class Actions {
         message.channel.send(notify).then(() => {
             message.channel.send(context);
         }).then(() => {
-            this.voteTimer.start(15 * 1000);
+            this.voteTimer.start(duration * 1000);
             notifierTimer.start((duration - 10) * 1000);
         }).catch(err => console.error(err));
     }
