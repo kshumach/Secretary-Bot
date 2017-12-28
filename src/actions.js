@@ -377,9 +377,6 @@ class Actions {
             : mention[0].slice(3, mention[0].length-1);
         const changeType = adjustment[0] === '--' ? 0 : 1;
         if(targetUserId === message.author.id && changeType === 1) {
-            const punishMessage = `#iq ${message.author} -- For trying to rig a vote to give themselves iq.`;
-            message.reply(`You can't give yourself iq you ${'<:pleb:237058273054818306>'}.`)
-                .then(msg => msg.channel.send(punishMessage));
             return `Cannot start a vote where the vote creator is trying to give themselves iq on a success.`;
         }
         const executionErrors = this.checkIqMessageValidity(mention, adjustment, help);
