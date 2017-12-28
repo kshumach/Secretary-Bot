@@ -264,7 +264,7 @@ class Actions {
     handleVote(message) {
         const messageContents = message.content.split(',');
         if(/--help/.test(message.content)) {
-            const helpText = `To register a vote type #iqvote followed by [++/+1/yes] for yes or [--/-1/no] for no\n\n`
+            const helpText = `To register a vote type #iqvote followed by [+1/yes] for yes or [-1/no] for no\n\n`
                 + `You can change your vote as much as you like before time runs out\n\nTo create a vote, type #iqvote `
                 + `[vote topic], [what to execute once the vote ends on a 'yes'], [duration::optional::default=30s::max=300s]\n\n`
                 + `For example, #iqvote Does selim deserve an iq loss?, #iq -- @person, 120.\nNOTE: `
