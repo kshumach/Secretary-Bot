@@ -347,7 +347,7 @@ class Actions {
         const noVotes = Object.keys(this.voteResults[`${message.guild.id}`]).filter((item) => {
             return serverVoters[item] === 'no';
         }).length;
-        const result = yesVotes > noVotes ? 1 : 0;
+        const result = ((yesVotes > noVotes) && (yesVotes + noVotes >= 2)) ? 1 : 0;
         const announce = `Results:\nYes: ${yesVotes}\nNo: ${noVotes}`;
         message.channel.send(notification).then(() => {
             message.channel.send(announce);
