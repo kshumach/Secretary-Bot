@@ -15,9 +15,6 @@ client.on('ready', () => {
 
 client.on('message', message => {
     // Check to see if message author is not the bot
-    if(message.author.id === botId && message.content.split(' ')[0] === '#iq') {
-        Actions.handleIqPoints(message, botId);
-    }
     if(message.author.id !== botId){
         if(message.mentions.users.exists('id', botId)) {
             Actions.handleMention(message);

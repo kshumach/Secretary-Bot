@@ -82,7 +82,6 @@ class Actions {
     }
 
     static handleIqPoints(message, botId) {
-        console.log('MESSAGE', message.content);
         const mention = message.content.match(RegexList.userMentionRegex);
         const adjustment = message.content.match(RegexList.iqChangeRegex);
         const helpRegex = /--help/;
