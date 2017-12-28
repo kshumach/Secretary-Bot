@@ -300,14 +300,14 @@ class Actions {
             return;
         }
 
-        const errorMessage = this.handleVoteErrors(messageContents);
+        const errorMessage = this.handleVoteErrors(messageContents, message);
         if(errorMessage) {
             message.channel.send(errorMessage);
             return;
         }
         const context = messageContents[0].split(' ')[1].trim();
         const voteFinishExecution = messageContents[1].trim();
-        const duration = messageContents[2] && messageContents[2].trim() < 300 ? messageContents[2].trim() : 60;
+        const duration = messageContents[2] && messageContents[2].trim() <= 300 && messageContents[2].trim() >= 60 ? messageContents[2].trim() : 60;
         this.voteResults[message.guild.id] = {};
         this.createVote(message, context, voteFinishExecution, duration);
     }
@@ -365,13 +365,23 @@ class Actions {
         this.voteResults = {};
     }
 
-    handleVoteErrors(messageContents) {
+    handleVoteErrors(messageContents, message) {
         if (messageContents.length < 2) {
             return `Not enough arguments provided or you forgot commas you <:pleb:237058273054818306>.`
             + `Type #iqvote --help for more info.`
         }
         const extractedItems = this.extractFromMessage(messageContents[1].trim());
         const { mention, adjustment, help } = extractedItems;
+        const targetUserId = mention[0].indexOf('!') === -1 ?
+            mention[0].slice(2, mention[0].length-1)
+            : mention[0].slice(3, mention[0].length-1);
+        const changeType = adjustment[0] === '--' ? 0 : 1;
+        if(targetUserId === message.author.id && changeType === 1) {
+            const punishMessage = `#iq ${message.author} -- For trying to rig a vote to give themselves iq.`;
+            message.reply(`You can't give yourself iq you ${'<:pleb:237058273054818306>'}.`)
+                .then(msg => msg.channel.send(punishMessage));
+            return `Cannot start a vote where the vote creator is trying to give themselves iq on a success.`;
+        }
         const executionErrors = this.checkIqMessageValidity(mention, adjustment, help);
         if(executionErrors) {
             return executionErrors;
