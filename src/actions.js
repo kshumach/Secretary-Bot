@@ -354,7 +354,9 @@ class Actions {
         }).then(() => {
             if(result === 1) {
                 message.channel.send(execution);
+                return;
             }
+            message.channel.send('Majority vote was no or there was not enough of votes. (Minimum 2)');
         });
         this.resetVoteVariables();
     }
