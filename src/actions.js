@@ -266,7 +266,7 @@ class Actions {
         if(/--help/.test(message.content)) {
             const helpText = `To register a vote type #iqvote followed by [++/+1/yes] for yes or [--/-1/no] for no\n\n`
                 + `You can change your vote as much as you like before time runs out\n\nTo create a vote, type #iqvote `
-                + `[vote topic], [what to execute once the vote ends on a 'yes'], [duration::optional::default=60s::max=300s]\n\n`
+                + `[vote topic], [what to execute once the vote ends on a 'yes'], [duration::optional::default=30s::max=300s]\n\n`
                 + `For example, #iqvote Does selim deserve an iq loss?, #iq -- @person, 120.\nNOTE: `
                 + `commas are important!\nTo see how much time is left in the vote type #iqvote --time`;
             message.channel.send(helpText);
@@ -307,7 +307,7 @@ class Actions {
         }
         const context = messageContents[0].split(' ')[1].trim();
         const voteFinishExecution = messageContents[1].trim();
-        const duration = messageContents[2] && messageContents[2].trim() <= 300 && messageContents[2].trim() >= 60 ? messageContents[2].trim() : 60;
+        const duration = messageContents[2] && messageContents[2].trim() <= 300 && messageContents[2].trim() >= 30 ? messageContents[2].trim() : 30;
         this.voteResults[message.guild.id] = {};
         this.createVote(message, context, voteFinishExecution, duration);
     }
