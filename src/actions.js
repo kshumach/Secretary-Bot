@@ -266,7 +266,7 @@ class Actions {
         if(/--help/.test(message.content)) {
             const helpText = `To register a vote type #iqvote followed by [++/+1/yes] for yes or [--/-1/no] for no\n\n`
                 + `You can change your vote as much as you like before time runs out\n\nTo create a vote, type #iqvote `
-                + `[vote topic], [what to execute once the vote ends on a 'yes'], [duration::optional::default=60s::max=300s]\n\n`
+                + `[vote topic], [what to execute once the vote ends on a 'yes'], [duration::optional::default=30s::max=300s]\n\n`
                 + `For example, #iqvote Does selim deserve an iq loss?, #iq -- @person, 120.\nNOTE: `
                 + `commas are important!\nTo see how much time is left in the vote type #iqvote --time`;
             message.channel.send(helpText);
@@ -300,14 +300,14 @@ class Actions {
             return;
         }
 
-        const errorMessage = this.handleVoteErrors(messageContents);
+        const errorMessage = this.handleVoteErrors(messageContents, message);
         if(errorMessage) {
             message.channel.send(errorMessage);
             return;
         }
         const context = messageContents[0].split(' ')[1].trim();
         const voteFinishExecution = messageContents[1].trim();
-        const duration = messageContents[2] && messageContents[2].trim() < 300 ? messageContents[2].trim() : 60;
+        const duration = messageContents[2] && messageContents[2].trim() <= 300 && messageContents[2].trim() >= 30 ? messageContents[2].trim() : 30;
         this.voteResults[message.guild.id] = {};
         this.createVote(message, context, voteFinishExecution, duration);
     }
@@ -365,13 +365,20 @@ class Actions {
         this.voteResults = {};
     }
 
-    handleVoteErrors(messageContents) {
+    handleVoteErrors(messageContents, message) {
         if (messageContents.length < 2) {
             return `Not enough arguments provided or you forgot commas you <:pleb:237058273054818306>.`
             + `Type #iqvote --help for more info.`
         }
         const extractedItems = this.extractFromMessage(messageContents[1].trim());
         const { mention, adjustment, help } = extractedItems;
+        const targetUserId = mention[0].indexOf('!') === -1 ?
+            mention[0].slice(2, mention[0].length-1)
+            : mention[0].slice(3, mention[0].length-1);
+        const changeType = adjustment[0] === '--' ? 0 : 1;
+        if(targetUserId === message.author.id && changeType === 1) {
+            return `Cannot start a vote where the vote creator is trying to give themselves iq on a success.`;
+        }
         const executionErrors = this.checkIqMessageValidity(mention, adjustment, help);
         if(executionErrors) {
             return executionErrors;
