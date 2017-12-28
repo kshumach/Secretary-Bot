@@ -305,7 +305,7 @@ class Actions {
             message.channel.send(errorMessage);
             return;
         }
-        const context = messageContents[0].split(' ')[1].trim();
+        const context = messageContents[0].slice(7).trim();
         const voteFinishExecution = messageContents[1].trim();
         const duration = messageContents[2] && messageContents[2].trim() <= 300 && messageContents[2].trim() >= 30 ? messageContents[2].trim() : 30;
         this.voteResults[message.guild.id] = {};
