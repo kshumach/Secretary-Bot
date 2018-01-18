@@ -79,23 +79,6 @@ class EmojiModels {
             }).catch(err => reject({ error: 'Failed at updating user emoji usage.' }));
         })
     }
-
-    static getEmojiUsageReport(serverId) {
-        return new Promise((resolve, reject) => {
-            const makeQuery = Model.performQuery(`
-                select emoji, usage_count 
-                    from emojis
-                    where server_id = $1
-            `
-            , [serverId]);
-
-            makeQuery.then(result => {
-                if(result) {
-                    resolve(result);
-                }
-            }).catch(err => reject({ error: 'Failed at getting emoji usage report.' }));
-        })
-    }
 }
 
 module.exports = EmojiModels;
