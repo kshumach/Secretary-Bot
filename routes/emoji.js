@@ -52,6 +52,14 @@ class EmojiActions {
             console.error(e);
         }
     }
+
+    static async getEmojiUsageReport(serverId) {
+        try {
+            return await EmojiModels.getEmojiUsageReport(serverId);
+        } catch(e) {
+            console.error(e);
+        }
+    }
 }
 
 module.exports = EmojiActions;

@@ -43,7 +43,7 @@ class Actions {
     }
 
     displayHelp(message) {
-        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n#setiq\n#getiq\n#iqvote\n\nFor specific command help, type in a command with no arguments.";
+        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n#setiq\n#getiq\n#iqvote\n#report\n\nFor specific command help, type in a command with no arguments.";
         message.channel.send(help);
     }
 
@@ -391,6 +391,22 @@ class Actions {
         return false;
     }
 
+    getEmojiUsageReport(message) {
+        const emojiNameRegex = /:[a-zA-Z0-9]+:/g;
+        EmojiRoutes.getEmojiUsageReport(message.guild.id).then(emojisList => {
+            const serverEmojiList = message.client.emojis.map(item => item.name);
+            // Filter the emoji list by whats currently on the server
+            const reportEmojisList = emojisList.filter(obj => {
+                const parsedName = obj.emoji.match(emojiNameRegex)[0].split(':')[1];
+                return serverEmojiList.indexOf(parsedName) !== -1
+            });
+            const reportMessage = reportEmojisList.map(obj => {
+                return `${obj.emoji}: ${obj.usage_count}`
+            }).join(', ');
+            message.channel.send(reportMessage);
+        }).catch(error => console.error(error));
+    }
+
     handleStandardMessage(message, botId, isDM) {
         const actionId = message.content.split(' ')[0];
         if(isDM && !(actionId === '#help')) return;
@@ -418,6 +434,9 @@ class Actions {
                 break;
             case '#iqvote':
                 this.handleVote(message);
+                break;
+            case '#report':
+                this.getEmojiUsageReport(message);
                 break;
             default:
                 break;
