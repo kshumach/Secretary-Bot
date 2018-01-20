@@ -393,6 +393,7 @@ class Actions {
     getEmojiUsageReport(message) {
         const emojiNameRegex = /:[a-zA-Z0-9]+:/g;
         EmojiRoutes.getEmojiUsageReport(message.guild.id).then(emojisList => {
+            console.log('actions', emojisList);
             const serverEmojiList = message.client.emojis.map(item => item.name);
             // Filter the emoji list by whats currently on the server
             const reportEmojisList = emojisList.filter(obj => {
