@@ -1,23 +1,18 @@
 'use strict';
 // TODO: Make return values more consistent
-const Model = require('./database');
+
+const { db } = require('../pgp');
+const sql = require('./sql').iq;
 
 class IqModels {
 
     static getIq(uid, serverId) {
         return new Promise((resolve, reject) => {
-
-            const makeQuery = Model.performQuery(`
-               SELECT IQ FROM iq_points
-                    WHERE user_id = $1 AND server_id = $2
-            `
-                , [uid, serverId]);
-
-            makeQuery.then(result => {
-                if (result.length === 0) {
-                    resolve({error: 'Given user, server pair does not exist. Set an iq for them with #setiq.'})
+            db.oneOrNone(sql.get, [uid, serverId]).then(result => {
+                if (result) {
+                    resolve(result);
                 } else {
-                    resolve(result[0]);
+                    resolve({error: 'Given user, server pair does not exist. Set an iq for them with #setiq.'})
                 }
             }).catch(err => reject(err))
         })
@@ -26,138 +21,93 @@ class IqModels {
     static setIq(uid, serverId, iq, adminId) {
         return new Promise((resolve, reject) => {
 
-            IqModels.isAdmin(adminId).then(isAdmin => {
-                if (isAdmin) {
-                    IqModels.checkEntry(uid, serverId).then(result => {
-                        if (result.exists) {
-                            if (result.iq !== iq) {
-                                IqModels.updateEntry(uid, serverId, iq).then(result => {
-                                    resolve(result);
-                                }).catch(err => reject(err));
-                            } else {
-                                resolve({error: `User's iq is already set to ${iq}. No changes made`});
-                            }
-                        } else {
-                            IqModels.insertEntry(uid, serverId, iq).then(result => {
-                                resolve(result);
-                            }).catch(err => reject(err));;
+            db.task(t => {
+                // Check if user is an admin
+                const query = `
+                    SELECT *
+                        FROM admins
+                        WHERE user_id = $1
+                `;
+                return t.oneOrNone(query, adminId)
+                    .then(result => {
+                        if(result) {
+                            return t.oneOrNone(sql.get, [uid, serverId])
+                                .then(result => {
+                                    if(result) {
+                                        if(result.iq !== iq) {
+                                            const updateQuery = `
+                                               UPDATE iq_points 
+                                               SET IQ = $1 
+                                               WHERE user_id = $2 
+                                               AND server_id = $3
+                                            `;
+                                            return t.none(updateQuery, [iq, uid, serverId])
+                                        } else {
+                                            return ({error: `User's iq is already set to ${iq}. No changes made`});
+                                        }
+                                    } else {
+                                        const insertQuery = `
+                                            INSERT INTO iq_points 
+                                            VALUES ($1, $2, $3)
+                                            RETURNING *
+                                        `;
+                                        return t.one(insertQuery, [uid, serverId, iq])
+                                            .then(result => {
+                                                if(result.user_id === uid) {
+                                                    return result;
+                                                }
+                                            })
+                                    }
+                                })
                         }
-                    }).catch(err => reject(err));
-                } else {
-                    resolve({error: 'User does not have required permissions'});
-                }
-            }).catch(err => console.error(err));
-        })
-    }
-
-    static setIqWithoutChecks(uid, serverId, type) {
-        return new Promise((resolve, reject) => {
-
-            const makeQuery = Model.performQuery(`
-                UPDATE iq_points
-                    SET IQ = IQ ${type === 1 ? '+' : '-'} 1
-                    WHERE user_id = $1 AND server_id = $2
-            `
-            , [uid, serverId]);
-
-            makeQuery.then(result => {
-                if (result) {
-                    resolve(result);
-                }
-            }).catch(err => reject({error: 'Could not update iq'}));
+                    })
+            })
+            .then(events => {
+                resolve(events || []);
+            })
+            .catch(err => {
+                reject(reject({ error: 'Failed to update iq.' }));
+            })
         })
     }
 
     static adjustIq(uid, serverId, type, triggerUser, reason) {
         return new Promise((resolve, reject) => {
-            IqModels.checkEntry(uid, serverId).then(result => {
-                if (result.exists) {
-                    IqModels.setIqWithoutChecks(uid, serverId, type).then(result => {
-                        if (result) {
+            db.task(t => {
+                return t.oneOrNone(sql.get, [uid, serverId])
+                    .then(result => {
+                        if(result) {
                             const query = `
-                                INSERT INTO iq_points_alterations
-                                    (target_user, trigger_user, server_id, change_type, reason)
-                                    VALUES
-                                    ($1, $2, $3, $4, $5)
+                                UPDATE iq_points
+                                SET IQ = IQ ${type === 1 ? '+' : '-'} 1
+                                WHERE user_id = $1 AND server_id = $2
                             `;
-                            const params = [uid, triggerUser, serverId, type, reason];
 
-                            Model.performQuery(query, params).then(result => {
-                                if (result) {
-                                    resolve(result);
-                                }
-                            }).catch(err => reject({error: 'Could not make record'}));
+                            return t.none(query, [uid, serverId])
+                                .then(() => {
+                                    const query = `
+                                        INSERT INTO iq_points_alterations
+                                        (target_user, trigger_user, server_id, change_type, reason)
+                                        VALUES
+                                        ($1, $2, $3, $4, $5)
+                                        RETURNING *
+                                    `;
+                                    const params = [uid, triggerUser, serverId, type, reason];
+                                    return t.one(query, params)
+                                        .then(result => {
+                                            return result;
+                                        })
+
+                                })
                         }
-                    }).catch(err => reject(err));
-                }
+                    })
             })
-        })
-    }
-
-    // Checks if an entry exists. Returns true if it does
-    static checkEntry(uid, serverId) {
-        return new Promise((resolve, reject) => {
-
-            const makeQuery = Model.performQuery(`
-               SELECT IQ FROM iq_points WHERE user_id = $1 AND server_id = $2
-            `
-            , [uid, serverId]);
-
-            makeQuery.then(result => {
-                if (result.length === 1) {
-                    resolve({ exists: true, iq: result[0].iq });
-                } else {
-                    resolve({ exists: false })
-                }
-            }).catch(err => reject(err));
-        })
-    }
-
-    static updateEntry(uid, serverId, iq) {
-        return new Promise((resolve, reject) =>{
-
-            const makeQuery = Model.performQuery(`
-               UPDATE iq_points SET IQ = $1 WHERE user_id = $2 AND server_id = $3
-            `
-            , [iq, uid, serverId]);
-
-            makeQuery.then(result => {
-                if (result) {
-                    resolve({updated: true})
-                }
-            }).catch(err => reject({ error: 'Failed to update iq.' }));
-        });
-    }
-
-    static insertEntry(uid, serverId, iq) {
-        return new Promise((resolve, reject) => {
-
-            const makeQuery = Model.performQuery(`
-               INSERT INTO iq_points VALUES ($1, $2, $3)
-            `
-            , [uid, serverId, iq]);
-
-            makeQuery.then(result => {
-                if (result) {
-                    resolve({inserted: true})
-                }
-            }).catch(err => reject({ error: 'failed to insert entry.' }));
-        });
-    }
-
-    static isAdmin(uid) {
-        return new Promise((resolve, reject) => {
-
-            const makeQuery = Model.performQuery(`
-                SELECT *
-                    FROM admins
-                    WHERE user_id = $1
-            `
-            , [uid]);
-
-            makeQuery.then(result => {
-                resolve(result.length === 1) // Return true if user is an admin
-            }).catch(err => reject(err))
+            .then(events => {
+                resolve(events);
+            })
+            .catch(err => {
+                reject({error: err});
+            });
         })
     }
 }
