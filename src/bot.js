@@ -31,7 +31,7 @@ client.on('message', message => {
             Actions.handleStandardMessage(message, botId, isDM);
         }
     }
-    if(RegexList.emojiRegex.test(message.content)) {
+    if(RegexList.emojiRegex.test(message.content) && message.author.id !== botId) {
         Actions.handleEmojis(message, isDM);
     }
 });
