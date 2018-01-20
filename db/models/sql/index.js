@@ -15,7 +15,7 @@ module.exports = {
         get: sql('emoji/get.sql')
     },
     // external queries for Products:
-    products: {
-
+    iq: {
+        get: sql('iq/get.sql')
     }
 };

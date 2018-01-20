@@ -1,6 +1,5 @@
 'use strict';
-// TODO: Make return values more consistent
-const Model = require('./database');
+
 const { db, pgp } = require('../pgp');
 const sql = require('./sql').emojis;
 
@@ -58,11 +57,8 @@ class EmojiModels {
             const cs = pgp.helpers.ColumnSet(['emoji', 'server_id', 'user_id'], { table: 'emoji_usage' });
             const query = pgp.helpers.insert(emoji, cs);
 
-            db.none(query).then(result => {
-                if(result) {
-                    resolve(result);
-                }
-            }).catch(err => reject({ error: 'Failed at updating user emoji usage.' }));
+            db.none(query)
+                .catch(err => reject({ error: 'Failed at updating user emoji usage.' }));
         })
     }
 
