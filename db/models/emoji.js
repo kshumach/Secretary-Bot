@@ -61,7 +61,7 @@ class EmojiModels {
                 .catch(err => reject({ error: 'Failed at updating user emoji usage.' }));
         })
     }
-
+  
     static getEmojiUsageReport(serverId) {
         return new Promise((resolve, reject) => {
             const query = `
