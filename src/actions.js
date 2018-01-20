@@ -390,6 +390,21 @@ class Actions {
         }
         return false;
     }
+    getEmojiUsageReport(message) {
+        const emojiNameRegex = /:[a-zA-Z0-9]+:/g;
+        EmojiRoutes.getEmojiUsageReport(message.guild.id).then(emojisList => {
+            const serverEmojiList = message.client.emojis.map(item => item.name);
+            // Filter the emoji list by whats currently on the server
+            const reportEmojisList = emojisList.filter(obj => {
+                const parsedName = obj.emoji.match(emojiNameRegex)[0].split(':')[1];
+                return serverEmojiList.indexOf(parsedName) !== -1
+            });
+            const reportMessage = reportEmojisList.map(obj => {
+                return `${obj.emoji}: ${obj.usage_count}`
+            }).join(', ');
+            message.channel.send(reportMessage);
+        }).catch(error => console.error(error));
+    }
 
     handleStandardMessage(message, botId, isDM) {
         const actionId = message.content.split(' ')[0];
@@ -418,6 +433,9 @@ class Actions {
                 break;
             case '#iqvote':
                 this.handleVote(message);
+                break;
+            case '#report':
+                this.getEmojiUsageReport(message);
                 break;
             default:
                 break;
