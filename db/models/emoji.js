@@ -67,7 +67,8 @@ class EmojiModels {
             const query = `
                 select emoji, usage_count 
                     from emojis
-                    where server_id = $1
+                    where server_id = '$1'
+                    ORDER BY usage_count DESC
             `;
 
             db.any(query, serverId).then(result => {

@@ -391,18 +391,16 @@ class Actions {
         return false;
     }
     getEmojiUsageReport(message) {
-        const emojiNameRegex = /:[a-zA-Z0-9]+:/g;
         EmojiRoutes.getEmojiUsageReport(message.guild.id).then(emojisList => {
             const serverEmojiList = message.client.emojis.map(item => item.name);
             // Filter the emoji list by whats currently on the server
             const reportEmojisList = emojisList.filter(obj => {
-                const parsedName = obj.emoji.match(emojiNameRegex)[0].split(':')[1];
+                const parsedName = obj.emoji.match(RegexList.emojiNameRegex)[0].split(':')[1];
                 return serverEmojiList.indexOf(parsedName) !== -1
             });
             const reportMessage = reportEmojisList.map(obj => {
                 return `${obj.emoji}: ${obj.usage_count}`
             }).join(', ');
-            console.log(reportMessage);
             message.channel.send(`Emoji Usage: ${reportMessage}`).then(() => {
                 message.channel.send('End Report'); // Need to send some message otherwise the next message cant parse emojis
             }).catch(err => console.error(err));

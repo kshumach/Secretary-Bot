@@ -6,5 +6,6 @@ exports.RegexList = {
     emojiRegex: /<:[a-zA-z0-9]+:[0-9]+>/g,
     textRegex: /[^#:a-zA-Z][a-zA-Z]+/g,
     voteRegexYes: /(\+1|yes)+/,
-    voteRegexNo: /(-1|no)+/
+    voteRegexNo: /(-1|no)+/,
+    emojiNameRegex: /:[a-zA-Z0-9_-]+:/g
 };
