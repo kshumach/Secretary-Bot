@@ -43,7 +43,7 @@ class Actions {
     }
 
     displayHelp(message) {
-        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n#setiq\n#getiq\n#iqvote\n\nFor specific command help, type in a command with no arguments.";
+        let help = "Available commands:\n#help\n#sched\n#book\n#iq\n#setiq\n#getiq\n#iqvote\n#report\n\nFor specific command help, type in a command with no arguments.";
         message.channel.send(help);
     }
 
