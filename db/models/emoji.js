@@ -68,6 +68,7 @@ class EmojiModels {
                 select emoji, usage_count 
                     from emojis
                     where server_id = '212802808917786625'
+                    ORDER BY usage_count DESC
             `;
 
             db.any(query).then(result => {
