@@ -396,8 +396,8 @@ class Actions {
             const serverEmojiList = message.client.emojis.map(item => item.name);
             // Filter the emoji list by whats currently on the server
             const reportEmojisList = emojisList.filter(obj => {
-                console.log(obj.emoji.match(emojiNameRegex)[0].split(':')[1]);
                 const parsedName = obj.emoji.match(emojiNameRegex)[0].split(':')[1];
+                console.log(parsedName);
                 return serverEmojiList.indexOf(parsedName) !== -1
             });
             const reportMessage = reportEmojisList.map(obj => {
