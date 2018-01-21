@@ -396,14 +396,13 @@ class Actions {
             const serverEmojiList = message.client.emojis.map(item => item.name);
             // Filter the emoji list by whats currently on the server
             const reportEmojisList = emojisList.filter(obj => {
+                console.log(obj);
                 const parsedName = obj.emoji.match(emojiNameRegex)[0].split(':')[1];
                 return serverEmojiList.indexOf(parsedName) !== -1
             });
-            console.log(reportEmojisList);
             const reportMessage = reportEmojisList.map(obj => {
                 return `${obj.emoji}: ${obj.usage_count}`
             }).join(', ');
-            console.log(reportMessage);
             message.channel.send(`Emoji Usage: ${reportMessage}`).then(() => {
                 message.channel.send('End Report'); // Need to send some message otherwise the next message cant parse emojis
             }).catch(err => console.error(err));
