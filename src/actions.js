@@ -399,7 +399,7 @@ class Actions {
                 return serverEmojiList.indexOf(parsedName) !== -1
             });
             const reportMessage = reportEmojisList.map(obj => {
-                return `${obj.emoji}: ${obj.usage_count}`
+                return `${obj.emoji} : ${obj.usage_count}`
             }).join(', ');
             message.channel.send(`Emoji Usage: ${reportMessage}`).then(() => {
                 message.channel.send('End Report'); // Need to send some message otherwise the next message cant parse emojis
