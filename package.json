@@ -6,7 +6,7 @@
     "babel-preset-node6": "^11.0.0",
     "discord.js": "^11.1.0",
     "lodash": "^4.17.4",
-    "pg-promise": "^7.3.2",
+    "pg-promise": "^8.4.4",
     "tocktimer": "^1.0.12"
   },
   "scripts": {
@@ -15,6 +15,9 @@
   },
   "devDependencies": {
     "chai": "^4.0.2",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.12.0",
     "mocha": "^3.4.2"
   },
   "nodemonConfig": {
