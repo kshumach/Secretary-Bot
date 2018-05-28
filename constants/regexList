@@ -8,4 +8,5 @@ exports.RegexList = {
   voteRegexYes: /(\+1|yes)+/,
   voteRegexNo: /(-1|no)+/,
   emojiNameRegex: /:[a-zA-Z0-9_-]+:/g,
+  iqRegex: /^#(.*)?(iq)$/g,
 };

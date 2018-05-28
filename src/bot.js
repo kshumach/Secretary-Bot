@@ -1,4 +1,4 @@
-const ActionSet = require('./actions');
+const Actions = require('./actions/index');
 const Discord = require('discord.js');
 const { RegexList } = require('../constants/regexList');
 
@@ -6,8 +6,6 @@ const Token = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_TOKEN_MAIN : 
 
 const client = new Discord.Client();
 const botId = process.env.DEVELOPMENT === 'prod' ? process.env.BOT_ID_MAIN : process.env.BOT_ID_TEST;
-
-const Actions = new ActionSet();
 
 client.on('ready', () => {
   console.log('I am ready!');
